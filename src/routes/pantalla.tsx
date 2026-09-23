@@ -5,6 +5,7 @@ import {
   formatClock,
   pedidoLabel,
   supabase,
+  todayRange,
   useNow,
   useRealtime,
   type Pedido,
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/pantalla")({
 });
 
 async function load() {
+  const { start, end } = todayRange();
   const [prep, listos] = await Promise.all([
     supabase
       .from("pedidos")
@@ -44,7 +46,9 @@ async function load() {
       .select(PEDIDO_COLS)
       .eq("store_id", STORE)
       .eq("estado", "listo")
-      .in("tipo_pedido", ["en_tienda", "recogida"]),
+      .or(
+        `tipo_pedido.eq.en_tienda,and(tipo_pedido.eq.recoger,franja_recogida.gte.${start},franja_recogida.lt.${end})`,
+      ),
   ]);
   if (prep.error) throw prep.error;
   if (listos.error) throw listos.error;

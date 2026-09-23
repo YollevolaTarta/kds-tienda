@@ -130,7 +130,7 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
         .from("pedidos")
         .select(PEDIDO_COLS)
         .eq("store_id", STORE)
-        .eq("tipo_pedido", "recogida")
+        .eq("tipo_pedido", "recoger")
         .in("estado", ["pendiente"])
         .gte("franja_recogida", start)
         .lte("franja_recogida", soon)
@@ -139,8 +139,10 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
         .from("pedidos")
         .select(PEDIDO_COLS)
         .eq("store_id", STORE)
-        .eq("tipo_pedido", "recogida")
+        .eq("tipo_pedido", "recoger")
         .eq("estado", "listo")
+        .gte("franja_recogida", start)
+        .lt("franja_recogida", end)
         .order("franja_recogida"),
     ]);
     for (const r of [mine, ct, co, al, en]) if (r.error) throw r.error;
@@ -205,7 +207,9 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
             <div className="text-3xl font-black text-alert">¡RECOGIDA EN MENOS DE 15 MIN!</div>
             <div className="mt-1 text-2xl font-bold tabular-nums">
               {data.alert
-                .map((p) => `${pedidoLabel(p)} · ${formatClock(p.franja_recogida!)}`)
+                .map((p) =>
+                  `${pedidoLabel(p)} · ${p.franja_recogida ? formatClock(p.franja_recogida) : ""}`,
+                )
                 .join("   ")}
             </div>
           </div>
@@ -216,8 +220,8 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
             order={data.mine}
             now={now}
             busy={busy}
-            onListo={() => listo(data.mine!.id)}
-            onSoltar={() => soltar(data.mine!.id)}
+            onListo={() => data.mine && listo(data.mine.id)}
+            onSoltar={() => data.mine && soltar(data.mine.id)}
           />
         ) : (
           <div className="flex flex-col items-center gap-6 rounded-2xl border border-white/10 bg-surface-2 p-8">
@@ -326,10 +330,10 @@ function LineaView({ l }: { l: Linea }) {
   const receta = l.recetas?.nombre ?? (typeof l.receta === "string" ? l.receta : null);
   const toppings = [l.topping_1, l.topping_2].filter(Boolean).join(" + ");
   return (
-    <div className="text-[1.35rem] leading-tight text-foreground/90">
-      <div className="font-semibold">{formatoLabel(l.formato)}</div>
-      <div className="text-foreground/70">{receta ?? l.crema}</div>
-      {toppings && <div className="text-foreground/70">{toppings}</div>}
+    <div className="rounded-xl border border-white/15 bg-background/20 p-4 leading-tight text-foreground">
+      <div className="text-4xl font-black">{formatoLabel(l.formato)}</div>
+      <div className="mt-2 text-3xl font-semibold">{receta ?? l.crema}</div>
+      {toppings && <div className="mt-2 text-2xl font-semibold">{toppings}</div>}
       {l.foto && (
         <div className="mt-2 animate-pulse rounded-xl border-4 border-warn bg-warn/20 px-3 py-2 text-center text-2xl font-black text-warn">
           ★ DECORACIÓN SORPRESA · la eliges tú ★
@@ -413,7 +417,7 @@ function OrderCard({
               </div>
             </div>
           ) : (
-            <LineaView key={i} l={g.lines[0]!} />
+            g.lines[0] ? <LineaView key={i} l={g.lines[0]} /> : null
           ),
         )}
         {lines.length === 0 && <div className="text-foreground/50">Sin líneas</div>}
