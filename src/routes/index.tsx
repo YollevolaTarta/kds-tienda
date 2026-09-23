@@ -139,11 +139,12 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
         .from("pedidos")
         .select(PEDIDO_COLS)
         .eq("store_id", STORE)
-        .eq("tipo_pedido", "recoger")
-        .eq("estado", "listo")
-        .gte("franja_recogida", start)
-        .lt("franja_recogida", end)
-        .order("franja_recogida"),
+        .in("tipo_pedido", ["recoger", "envio"])
+        .eq("estado", "en_nevera")
+        .or(
+          `and(tipo_pedido.eq.envio,fecha_envio.eq.${date}),and(tipo_pedido.eq.recoger,franja_recogida.gte.${start},franja_recogida.lt.${end})`,
+        )
+        .order("numero_pedido"),
     ]);
     for (const r of [mine, ct, co, al, en]) if (r.error) throw r.error;
     return {
@@ -175,12 +176,18 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
         }),
       "No hay pedidos en esa cola",
     );
-  const listo = (id: Pedido["id"]) =>
-    run(() => supabase.from("pedidos").update({ estado: "listo" }).eq("id", id));
+  const terminar = (o: Pedido) =>
+    run(() =>
+      supabase
+        .from("pedidos")
+        .update({ estado: o.tipo_pedido === "en_tienda" ? "listo" : "en_nevera" })
+        .eq("id", o.id),
+    );
+  const [histOpen, setHistOpen] = useState(false);
   const soltar = (id: Pedido["id"]) =>
     run(() => supabase.rpc("soltar_pedido", { p_pedido_id: id }));
   const entregado = (id: Pedido["id"]) =>
-    run(() => supabase.from("pedidos").update({ estado: "entregado" }).eq("id", id));
+    run(() => supabase.from("pedidos").update({ estado: "listo" }).eq("id", id));
 
   const mineCola = data.mine ? colaOf(data.mine) : null;
 
@@ -220,7 +227,7 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
             order={data.mine}
             now={now}
             busy={busy}
-            onListo={() => data.mine && listo(data.mine.id)}
+            onListo={() => data.mine && terminar(data.mine)}
             onSoltar={() => data.mine && soltar(data.mine.id)}
           />
         ) : (
@@ -250,7 +257,12 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
                   key={p.id}
                   className="flex items-center justify-between rounded-xl border border-white/15 px-4 py-3"
                 >
-                  <span className="text-3xl font-black tabular-nums">{pedidoLabel(p)}</span>
+                  <span className="flex items-center gap-3">
+                    <span className="text-3xl font-black tabular-nums">{pedidoLabel(p)}</span>
+                    <span className="rounded-md border border-white/30 px-2 py-0.5 text-sm font-bold uppercase">
+                      {p.tipo_pedido === "envio" ? "Envío" : "Recogida"}
+                    </span>
+                  </span>
                   <span className="text-xl text-brand tabular-nums">
                     {p.franja_recogida ? formatClock(p.franja_recogida) : ""}
                   </span>
@@ -259,7 +271,7 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
                     onClick={() => entregado(p.id)}
                     className="rounded-lg bg-brand px-5 py-3 text-lg font-bold text-black disabled:opacity-40"
                   >
-                    ENTREGADO
+                    LISTO
                   </button>
                 </div>
               ))}
@@ -280,6 +292,12 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
           <button onClick={onChangeStation} className="text-sm text-foreground/40 underline-offset-4 hover:underline">
             Estación {station} · cambiar
           </button>
+          <button
+            onClick={() => setHistOpen((v) => !v)}
+            className="rounded-md border border-white/30 px-3 py-1 text-sm"
+          >
+            Historial de hoy
+          </button>
           <Link
             to="/pantalla"
             className="rounded-md border border-brand/50 px-3 py-1 text-sm text-brand"
@@ -296,6 +314,16 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
         <div className="mb-4 rounded-xl border border-white/15 bg-surface-2 px-4 py-3 text-lg text-foreground/80">
           {msg ?? `Sin conexión con la base: ${error}`}
         </div>
+      )}
+
+      {histOpen && (
+        <HistoryPanel
+          onClose={() => setHistOpen(false)}
+          onReopened={async () => {
+            setHistOpen(false);
+            await refresh();
+          }}
+        />
       )}
 
       <div className="grid grid-cols-2 gap-6">
@@ -428,7 +456,7 @@ function OrderCard({
         onClick={onListo}
         className="mt-4 w-full rounded-xl bg-ok py-5 text-3xl font-black tracking-wide text-black active:scale-[0.99] disabled:opacity-40"
       >
-        LISTO
+        {isTienda ? "LISTO" : "EN NEVERA"}
       </button>
       <button
         disabled={busy}
@@ -437,6 +465,172 @@ function OrderCard({
       >
         Devolver a la cola
       </button>
+    </div>
+  );
+}
+
+function tipoLabel(t: string) {
+  return t === "en_tienda" ? "Tienda" : t === "recoger" ? "Recogida" : t === "envio" ? "Envío" : t;
+}
+
+function reabierto(c: unknown) {
+  if (c == null) return false;
+  if (Array.isArray(c)) return c.length > 0;
+  if (typeof c === "object") return Object.keys(c as object).length > 0;
+  return String(c).trim() !== "";
+}
+
+function matchesSearch(p: Pedido, q: string) {
+  const t = q.trim().toUpperCase().replace(/\s+/g, "");
+  if (!t) return true;
+  const m = t.match(/^([A-Z])?-?0*(\d+)$/);
+  if (!m) return pedidoLabel(p).toUpperCase().includes(t);
+  if (m[1] && (p.serie ?? "").toUpperCase() !== m[1]) return false;
+  return Number(m[2]) === Number(p.numero_pedido);
+}
+
+function HistoryPanel({ onClose, onReopened }: { onClose: () => void; onReopened: () => void }) {
+  const [q, setQ] = useState("");
+  const [sel, setSel] = useState<Pedido["id"] | null>(null);
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const { data, error } = useRealtime<Pedido[]>(async () => {
+    const { start, end } = todayRange();
+    const r = await supabase
+      .from("pedidos")
+      .select(`${PEDIDO_COLS},lineas_pedido(${LINEA_COLS})`)
+      .eq("store_id", STORE)
+      .in("estado", ["en_nevera", "listo"])
+      .gte("created_at", start)
+      .lt("created_at", end)
+      .order("numero_pedido", { ascending: false });
+    if (r.error) throw r.error;
+    return (r.data ?? []) as unknown as Pedido[];
+  }, []);
+
+  const list = data.filter((p) => matchesSearch(p, q));
+  const order = sel != null ? data.find((p) => p.id === sel) ?? null : null;
+
+  async function reabrir(id: Pedido["id"]) {
+    setBusy(true);
+    setErr(null);
+    const { error } = await supabase.rpc("reabrir_pedido", { p_pedido_id: id });
+    setBusy(false);
+    setConfirm(false);
+    if (error) setErr(`Error: ${error.message}`);
+    else onReopened();
+  }
+
+  const finished = (p: Pedido) => {
+    const t = p.tipo_pedido === "en_tienda" ? p.listo_at : (p.en_nevera_at ?? p.listo_at);
+    return t ? formatClock(t) : "--:--";
+  };
+
+  return (
+    <div className="mb-4 rounded-3xl border border-white/20 bg-surface p-5">
+      <div className="mb-4 flex items-center gap-4">
+        <h2 className="text-3xl font-black">Historial de hoy</h2>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar nº (7 o T-07)"
+          className="flex-1 rounded-xl border border-white/20 bg-surface-2 px-4 py-3 text-2xl text-foreground"
+        />
+        <button onClick={onClose} className="rounded-xl border border-white/30 px-5 py-3 text-xl font-bold">
+          Cerrar
+        </button>
+      </div>
+      {(err || error) && (
+        <div className="mb-3 rounded-xl border border-alert bg-alert/20 px-4 py-3 text-lg">
+          {err ?? `Error: ${error}`}
+        </div>
+      )}
+      <div className="grid grid-cols-[2fr_3fr] gap-4">
+        <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto pr-1">
+          {list.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => {
+                setSel(p.id);
+                setConfirm(false);
+                setErr(null);
+              }}
+              className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left ${
+                sel === p.id ? "border-brand bg-surface-2" : "border-white/15"
+              }`}
+            >
+              <span className="flex items-center gap-3">
+                <span className="text-3xl font-black tabular-nums">{pedidoLabel(p)}</span>
+                {reabierto(p.ciclos) && (
+                  <span className="rounded-md bg-warn px-2 py-0.5 text-sm font-black text-black">
+                    REABIERTO
+                  </span>
+                )}
+              </span>
+              <span className="text-right text-lg">
+                <div>{tipoLabel(p.tipo_pedido)} · Est. {p.estacion ?? "-"}</div>
+                <div className="tabular-nums text-foreground/60">{finished(p)}</div>
+              </span>
+            </button>
+          ))}
+          {list.length === 0 && <div className="text-foreground/50">Sin pedidos</div>}
+        </div>
+        <div className="max-h-[60vh] overflow-y-auto">
+          {order ? (
+            <div className="rounded-2xl border border-white/10 bg-surface-2 p-5">
+              <div className="flex items-baseline justify-between">
+                <div className="text-6xl font-black tracking-tight">{pedidoLabel(order)}</div>
+                <div className="text-xl">{tipoLabel(order.tipo_pedido)}</div>
+              </div>
+              <div className="mt-3 flex flex-col gap-4">
+                {groupLines(order.lineas_pedido ?? []).map((g, i) =>
+                  g.pack ? (
+                    <div key={i} className="rounded-xl border border-brand/40 p-3">
+                      <div className="mb-2 text-lg font-bold tracking-wide text-brand uppercase">{g.pack}</div>
+                      <div className="flex flex-col gap-3">
+                        {g.lines.map((l) => (
+                          <LineaView key={l.id} l={l} />
+                        ))}
+                      </div>
+                    </div>
+                  ) : g.lines[0] ? (
+                    <LineaView key={i} l={g.lines[0]} />
+                  ) : null,
+                )}
+              </div>
+              {confirm ? (
+                <div className="mt-4 flex items-center gap-3">
+                  <span className="text-2xl font-black text-warn">¿Seguro?</span>
+                  <button
+                    disabled={busy}
+                    onClick={() => reabrir(order.id)}
+                    className="flex-1 rounded-xl bg-warn py-4 text-2xl font-black text-black disabled:opacity-40"
+                  >
+                    Sí
+                  </button>
+                  <button
+                    disabled={busy}
+                    onClick={() => setConfirm(false)}
+                    className="flex-1 rounded-xl border border-white/30 py-4 text-2xl font-bold"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirm(true)}
+                  className="mt-4 w-full rounded-xl bg-warn py-5 text-3xl font-black text-black"
+                >
+                  REABRIR
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-xl text-foreground/50">Pulsa un pedido para ver el detalle</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

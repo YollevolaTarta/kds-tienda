@@ -45,9 +45,8 @@ async function load() {
       .from("pedidos")
       .select(PEDIDO_COLS)
       .eq("store_id", STORE)
-      .eq("estado", "listo")
       .or(
-        `tipo_pedido.eq.en_tienda,and(tipo_pedido.eq.recoger,franja_recogida.gte.${start},franja_recogida.lt.${end})`,
+        `and(tipo_pedido.eq.en_tienda,estado.eq.listo),and(tipo_pedido.eq.recoger,estado.eq.en_nevera,franja_recogida.gte.${start},franja_recogida.lt.${end})`,
       ),
   ]);
   if (prep.error) throw prep.error;
