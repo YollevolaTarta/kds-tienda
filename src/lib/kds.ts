@@ -100,8 +100,9 @@ export function useRealtime<T>(load: () => Promise<T>, initial: T) {
 }
 
 export function useNow(intervalMs = 1000) {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(0);
   useEffect(() => {
+    setNow(Date.now());
     const t = setInterval(() => setNow(Date.now()), intervalMs);
     return () => clearInterval(t);
   }, [intervalMs]);
@@ -109,6 +110,7 @@ export function useNow(intervalMs = 1000) {
 }
 
 export function formatClock(ts: number | string) {
+  if (ts === 0) return "--:--";
   return new Date(ts).toLocaleTimeString("es-ES", {
     hour: "2-digit",
     minute: "2-digit",
