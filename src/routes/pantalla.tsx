@@ -1,5 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { formatClock, useKds, useNow } from "@/lib/kds-store";
+import {
+  PEDIDO_COLS,
+  STORE,
+  formatClock,
+  pedidoLabel,
+  supabase,
+  useNow,
+  useRealtime,
+  type Pedido,
+} from "@/lib/kds";
 
 export const Route = createFileRoute("/pantalla")({
   head: () => ({
@@ -14,46 +23,80 @@ export const Route = createFileRoute("/pantalla")({
         property: "og:description",
         content: "Números de pedido listos para recoger en Yo Llevo la Tarta.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PickupScreen,
 });
 
-const VISIBLE_MS = 3 * 60 * 1000;
+async function load() {
+  const [prep, listos] = await Promise.all([
+    supabase
+      .from("pedidos")
+      .select(PEDIDO_COLS)
+      .eq("store_id", STORE)
+      .eq("tipo_pedido", "en_tienda")
+      .eq("estado", "preparando")
+      .order("cogido_at"),
+    supabase
+      .from("pedidos")
+      .select(PEDIDO_COLS)
+      .eq("store_id", STORE)
+      .eq("estado", "listo")
+      .in("tipo_pedido", ["en_tienda", "recogida"]),
+  ]);
+  if (prep.error) throw prep.error;
+  if (listos.error) throw listos.error;
+  return {
+    prep: (prep.data ?? []) as Pedido[],
+    listos: (listos.data ?? []) as Pedido[],
+  };
+}
 
 function PickupScreen() {
-  const { ready } = useKds();
+  const { data } = useRealtime(load, { prep: [], listos: [] });
   const now = useNow();
-  const visible = ready.filter((r) => now - r.readyAt < VISIBLE_MS).slice(0, 6);
+
+  const ready = data.listos
+    .filter((p) => {
+      if (p.tipo_pedido === "en_tienda")
+        return p.listo_at && now - new Date(p.listo_at).getTime() < 5 * 60_000;
+      return p.franja_recogida && new Date(p.franja_recogida).getTime() - now <= 5 * 60_000;
+    })
+    .sort((a, b) => (b.listo_at ?? "").localeCompare(a.listo_at ?? ""));
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-black px-10 text-center">
+    <main className="grid min-h-screen grid-cols-2 bg-black text-center">
       <div className="absolute top-6 left-8 text-sm font-semibold tracking-[0.2em] text-brand uppercase">
         Yo Llevo la Tarta
       </div>
       <div className="absolute top-6 right-8 text-xl font-bold tabular-nums text-white/40">
         {formatClock(now)}
       </div>
+      <h1 className="sr-only">Estado de los pedidos</h1>
 
-      {visible.length > 0 ? (
-        <>
-          <h1 className="text-4xl font-bold tracking-wide text-white/70">
-            Tu pedido está listo
-          </h1>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
-            {visible.map((r) => (
-              <span
-                key={r.number + r.readyAt}
-                className="text-[9rem] leading-none font-black text-brand tabular-nums"
-              >
-                #{r.number}
-              </span>
-            ))}
-          </div>
-        </>
-      ) : (
-        <h1 className="text-5xl font-bold text-white/25">Preparando pedidos…</h1>
-      )}
+      <section className="flex flex-col items-center border-r border-white/10 px-8 pt-24">
+        <h2 className="text-5xl font-black tracking-wide text-white/60">PREPARANDO</h2>
+        <div className="mt-12 flex flex-wrap justify-center gap-x-12 gap-y-6">
+          {data.prep.map((p) => (
+            <span key={p.id} className="text-[7rem] leading-none font-black text-white/70 tabular-nums">
+              {pedidoLabel(p)}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      <section className="flex flex-col items-center px-8 pt-24">
+        <h2 className="text-5xl font-black tracking-wide text-brand">LISTO</h2>
+        <div className="mt-12 flex flex-wrap justify-center gap-x-12 gap-y-6">
+          {ready.map((p) => (
+            <span key={p.id} className="text-[9rem] leading-none font-black text-brand tabular-nums">
+              {pedidoLabel(p)}
+            </span>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }
