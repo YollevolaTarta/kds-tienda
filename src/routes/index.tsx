@@ -503,13 +503,17 @@ function HistoryPanel({ onClose, onReopened }: { onClose: () => void; onReopened
       .eq("store_id", STORE)
       .in("estado", ["en_nevera", "listo"])
       .gte("created_at", start)
-      .lt("created_at", end)
-      .order("numero_pedido", { ascending: false });
+      .lt("created_at", end);
     if (r.error) throw r.error;
     return (r.data ?? []) as unknown as Pedido[];
   }, []);
 
-  const list = data.filter((p) => matchesSearch(p, q));
+  const finishedAt = (p: Pedido) =>
+    p.tipo_pedido === "en_tienda" ? p.listo_at : (p.en_nevera_at ?? p.listo_at);
+  const byFinishedDesc = (a: Pedido, b: Pedido) =>
+    (finishedAt(b) ?? "").localeCompare(finishedAt(a) ?? "");
+  const listT = data.filter((p) => p.serie === "T" && matchesSearch(p, q)).sort(byFinishedDesc);
+  const listW = data.filter((p) => p.serie !== "T" && matchesSearch(p, q)).sort(byFinishedDesc);
   const order = sel != null ? data.find((p) => p.id === sel) ?? null : null;
 
   async function reabrir(id: Pedido["id"]) {
