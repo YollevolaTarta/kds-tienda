@@ -34,12 +34,15 @@ export type Pedido = {
   franja_recogida: string | null;
   cogido_at: string | null;
   listo_at: string | null;
+  en_nevera_at?: string | null;
+  created_at?: string | null;
+  ciclos?: unknown;
   lineas_pedido?: Linea[];
 };
 
 // Nunca se piden datos personales del cliente.
 export const PEDIDO_COLS =
-  "id,serie,numero_pedido,estado,estacion,tipo_pedido,fecha_envio,franja_recogida,cogido_at,listo_at";
+  "id,serie,numero_pedido,estado,estacion,tipo_pedido,fecha_envio,franja_recogida,cogido_at,listo_at,en_nevera_at,created_at,ciclos";
 export const LINEA_COLS =
   "id,pack_grupo,formato,receta,crema,topping_1,topping_2,foto,packs(nombre),recetas(nombre)";
 
