@@ -413,7 +413,7 @@ function OrderCard({
               </div>
             </div>
           ) : (
-            <LineaView key={i} l={g.lines[0]} />
+            <LineaView key={i} l={g.lines[0]!} />
           ),
         )}
         {lines.length === 0 && <div className="text-foreground/50">Sin líneas</div>}
