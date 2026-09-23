@@ -550,37 +550,44 @@ function HistoryPanel({ onClose, onReopened }: { onClose: () => void; onReopened
           {err ?? `Error: ${error}`}
         </div>
       )}
-      <div className="grid grid-cols-[2fr_3fr] gap-4">
-        <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto pr-1">
-          {list.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => {
-                setSel(p.id);
-                setConfirm(false);
-                setErr(null);
-              }}
-              className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left ${
-                sel === p.id ? "border-brand bg-surface-2" : "border-white/15"
-              }`}
-            >
-              <span className="flex items-center gap-3">
-                <span className="text-3xl font-black tabular-nums">{pedidoLabel(p)}</span>
-                {reabierto(p.ciclos) && (
-                  <span className="rounded-md bg-warn px-2 py-0.5 text-sm font-black text-black">
-                    REABIERTO
+      <div className="grid grid-cols-2 gap-4">
+        {([["T", listT], ["W", listW]] as const).map(([titulo, lista]) => (
+          <div key={titulo}>
+            <h3 className="mb-2 text-xl font-bold text-foreground/70">Serie {titulo}</h3>
+            <div className="flex max-h-[40vh] flex-col gap-2 overflow-y-auto pr-1">
+              {lista.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    setSel(p.id);
+                    setConfirm(false);
+                    setErr(null);
+                  }}
+                  className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left ${
+                    sel === p.id ? "border-brand bg-surface-2" : "border-white/15"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="text-3xl font-black tabular-nums">{pedidoLabel(p)}</span>
+                    {reabierto(p.ciclos) && (
+                      <span className="rounded-md bg-warn px-2 py-0.5 text-sm font-black text-black">
+                        REABIERTO
+                      </span>
+                    )}
                   </span>
-                )}
-              </span>
-              <span className="text-right text-lg">
-                <div>{tipoLabel(p.tipo_pedido)} · Est. {p.estacion ?? "-"}</div>
-                <div className="tabular-nums text-foreground/60">{finished(p)}</div>
-              </span>
-            </button>
-          ))}
-          {list.length === 0 && <div className="text-foreground/50">Sin pedidos</div>}
-        </div>
-        <div className="max-h-[60vh] overflow-y-auto">
+                  <span className="text-right text-lg">
+                    <div>{tipoLabel(p.tipo_pedido)} · Est. {p.estacion ?? "-"}</div>
+                    <div className="tabular-nums text-foreground/60">{finished(p)}</div>
+                  </span>
+                </button>
+              ))}
+              {lista.length === 0 && <div className="text-foreground/50">Sin pedidos</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4">
+        <div className="max-h-[40vh] overflow-y-auto">
           {order ? (
             <div className="rounded-2xl border border-white/10 bg-surface-2 p-5">
               <div className="flex items-baseline justify-between">
