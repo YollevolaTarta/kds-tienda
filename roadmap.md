@@ -8,7 +8,7 @@
 
 # Stock en gramos y agotados
 
-- [ ] Cambiar Stock y recepción de envíos a gramos enteros.
-- [ ] Añadir avisos bajo mínimos y acciones reversibles.
-- [ ] Mostrar el contador de avisos sin confirmar en la cabecera.
-- [ ] Verificar compilación, ausencia de nombres antiguos y acceso público a `/pantalla`.
+- [x] Cambiar Stock y recepción de envíos a gramos enteros.
+- [x] Añadir avisos bajo mínimos y acciones reversibles.
+- [x] Mostrar el contador de avisos sin confirmar en la cabecera.
+- [x] Verificar compilación, ausencia de nombres antiguos y acceso público a `/pantalla`.

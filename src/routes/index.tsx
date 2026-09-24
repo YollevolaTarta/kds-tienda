@@ -203,7 +203,7 @@ function KdsScreen({
     },
     0,
     supabase,
-    ["traspasos", "traspaso_lineas", "agotados"],
+    ["traspasos", "traspaso_lineas"],
   );
 
   const { data, error, refresh } = useRealtime<Data>(async () => {

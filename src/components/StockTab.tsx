@@ -26,7 +26,7 @@ type AvisoStock = {
   ya_agotado: boolean;
 };
 
-const TABLES = ["traspasos", "traspaso_lineas", "agotados"];
+const TABLES = ["traspasos", "traspaso_lineas"];
 
 function formatG(value: number | string | null | undefined) {
   return Math.round(Number(value ?? 0)).toLocaleString("es-ES", { maximumFractionDigits: 0 });
