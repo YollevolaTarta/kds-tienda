@@ -122,7 +122,7 @@ function AvisosStock({
 }: {
   avisos: AvisoStock[];
   onDone: () => Promise<void>;
-  onAvisosChanged?: () => Promise<void>;
+  onAvisosChanged: (() => Promise<void>) | undefined;
 }) {
   const [busyId, setBusyId] = useState<number | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -179,7 +179,7 @@ function EnvioCard({
 }: {
   envio: Envio;
   onDone: () => Promise<void>;
-  onAvisosChanged?: () => Promise<void>;
+  onAvisosChanged: (() => Promise<void>) | undefined;
 }) {
   const lineas = envio.lineas ?? [];
   const [gramos, setGramos] = useState<Record<string, string>>({});
