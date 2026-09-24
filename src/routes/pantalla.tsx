@@ -4,7 +4,7 @@ import {
   STORE,
   formatClock,
   pedidoLabel,
-  supabase,
+  supabaseAnon as supabase,
   todayRange,
   useNow,
   useRealtime,
@@ -58,7 +58,7 @@ async function load() {
 }
 
 function PickupScreen() {
-  const { data } = useRealtime(load, { prep: [], listos: [] });
+  const { data } = useRealtime(load, { prep: [], listos: [] }, supabase);
   const now = useNow();
 
   const ready = data.listos
