@@ -6,7 +6,6 @@ type Envio = {
   traspaso_id: number;
   store_id: string;
   created_at: string;
-  enviado_email: string | null;
   lineas: EnvioLinea[] | null;
 };
 type StockRow = {
@@ -38,7 +37,7 @@ function parseG(value: string) {
   return Number(value.replace(/\./g, ""));
 }
 
-export function StockTab() {
+export function StockTab({ onAvisosChanged }: { onAvisosChanged?: () => Promise<void> }) {
   const { data, error, refresh } = useRealtime<{
     avisos: AvisoStock[];
     envios: Envio[];
@@ -71,9 +70,16 @@ export function StockTab() {
           Error al leer el stock: {error}
         </div>
       )}
-      {data.avisos.length > 0 && <AvisosStock avisos={data.avisos} onDone={refresh} />}
+      {data.avisos.length > 0 && (
+        <AvisosStock avisos={data.avisos} onDone={refresh} onAvisosChanged={onAvisosChanged} />
+      )}
       {data.envios.map((e) => (
-        <EnvioCard key={e.traspaso_id} envio={e} onDone={refresh} />
+        <EnvioCard
+          key={e.traspaso_id}
+          envio={e}
+          onDone={refresh}
+          onAvisosChanged={onAvisosChanged}
+        />
       ))}
 
       <section className="rounded-3xl border border-white/10 bg-surface p-5">
@@ -109,7 +115,15 @@ export function StockTab() {
   );
 }
 
-function AvisosStock({ avisos, onDone }: { avisos: AvisoStock[]; onDone: () => Promise<void> }) {
+function AvisosStock({
+  avisos,
+  onDone,
+  onAvisosChanged,
+}: {
+  avisos: AvisoStock[];
+  onDone: () => Promise<void>;
+  onAvisosChanged?: () => Promise<void>;
+}) {
   const [busyId, setBusyId] = useState<number | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -122,7 +136,7 @@ function AvisosStock({ avisos, onDone }: { avisos: AvisoStock[]; onDone: () => P
     );
     setBusyId(null);
     if (error) return setErr(`Error: ${error.message}`);
-    await onDone();
+    await Promise.all([onDone(), onAvisosChanged?.()]);
   }
 
   return (
@@ -158,13 +172,22 @@ function AvisosStock({ avisos, onDone }: { avisos: AvisoStock[]; onDone: () => P
   );
 }
 
-function EnvioCard({ envio, onDone }: { envio: Envio; onDone: () => Promise<void> }) {
+function EnvioCard({
+  envio,
+  onDone,
+  onAvisosChanged,
+}: {
+  envio: Envio;
+  onDone: () => Promise<void>;
+  onAvisosChanged?: () => Promise<void>;
+}) {
   const lineas = envio.lineas ?? [];
   const [gramos, setGramos] = useState<Record<string, string>>({});
   const [diff, setDiff] = useState(false);
   const [nota, setNota] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [invalidos, setInvalidos] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     const init: Record<string, string> = {};
@@ -175,6 +198,10 @@ function EnvioCard({ envio, onDone }: { envio: Envio; onDone: () => Promise<void
 
   async function confirmar(conDiferencias: boolean) {
     setErr(null);
+    if (conDiferencias && invalidos.size > 0) {
+      setErr("Escribe los gramos sin decimales");
+      return;
+    }
     const recibidosG: Record<string, number> = {};
     for (const l of lineas) {
       const id = String(l.elaboracion_id);
@@ -191,7 +218,7 @@ function EnvioCard({ envio, onDone }: { envio: Envio; onDone: () => Promise<void
     });
     setBusy(false);
     if (error) return setErr(`Error: ${error.message}`);
-    await onDone();
+    await Promise.all([onDone(), onAvisosChanged?.()]);
   }
 
   const fecha = new Date(envio.created_at).toLocaleString("es-ES", {
@@ -206,7 +233,6 @@ function EnvioCard({ envio, onDone }: { envio: Envio; onDone: () => Promise<void
       <h2 className="text-3xl font-black tracking-tight text-brand">ENVÍO DEL OBRADOR PENDIENTE</h2>
       <div className="mt-1 text-xl text-foreground/70">
         {fecha}
-        {envio.enviado_email ? ` · enviado por ${envio.enviado_email}` : ""}
       </div>
 
       <div className="mt-4 grid grid-cols-[1fr_auto_auto] items-center gap-x-8 gap-y-3">
@@ -227,16 +253,30 @@ function EnvioCard({ envio, onDone }: { envio: Envio; onDone: () => Promise<void
                   const inserted = (e.nativeEvent as InputEvent).data;
                   if (inserted === "," || inserted === ".") {
                     e.preventDefault();
+                    setInvalidos((current) => new Set(current).add(id));
+                    setErr("Escribe los gramos sin decimales");
+                  }
+                }}
+                onPaste={(e) => {
+                  if (/[.,]/.test(e.clipboardData.getData("text"))) {
+                    e.preventDefault();
+                    setInvalidos((current) => new Set(current).add(id));
                     setErr("Escribe los gramos sin decimales");
                   }
                 }}
                 onChange={(e) => {
                   const raw = e.target.value;
                   if (raw.includes(",") || (raw.includes(".") && !/^\d{1,3}(?:\.\d{3})*$/.test(raw))) {
+                    setInvalidos((current) => new Set(current).add(id));
                     setErr("Escribe los gramos sin decimales");
                     return;
                   }
                   const digits = raw.replace(/\D/g, "");
+                  setInvalidos((current) => {
+                    const next = new Set(current);
+                    next.delete(id);
+                    return next;
+                  });
                   setErr(null);
                   setGramos((current) => ({ ...current, [id]: digits ? formatG(digits) : "" }));
                 }}

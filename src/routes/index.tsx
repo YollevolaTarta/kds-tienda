@@ -192,7 +192,7 @@ function KdsScreen({
   const [tab, setTab] = useState<"cocina" | "stock">("cocina");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-  const { data: avisosSinConfirmar } = useRealtime<number>(
+  const { data: avisosSinConfirmar, refresh: refreshAvisos } = useRealtime<number>(
     async () => {
       const r = await supabase
         .from("v_tienda_avisos_stock")
@@ -446,7 +446,7 @@ function KdsScreen({
       )}
 
       {tab === "stock" ? (
-        <StockTab />
+        <StockTab onAvisosChanged={refreshAvisos} />
       ) : (
         <>
       {histOpen && (
