@@ -192,6 +192,19 @@ function KdsScreen({
   const [tab, setTab] = useState<"cocina" | "stock">("cocina");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const { data: avisosSinConfirmar } = useRealtime<number>(
+    async () => {
+      const r = await supabase
+        .from("v_tienda_avisos_stock")
+        .select("elaboracion_id", { count: "exact", head: true })
+        .eq("ya_agotado", false);
+      if (r.error) throw r.error;
+      return r.count ?? 0;
+    },
+    0,
+    supabase,
+    ["traspasos", "traspaso_lineas", "agotados"],
+  );
 
   const { data, error, refresh } = useRealtime<Data>(async () => {
     const { start, end, date } = todayRange();
@@ -394,6 +407,11 @@ function KdsScreen({
                 className={`px-3 py-1 font-bold uppercase ${tab === t ? "bg-brand text-black" : ""}`}
               >
                 {t === "cocina" ? "Cocina" : "Stock"}
+                {t === "stock" && avisosSinConfirmar > 0 && (
+                  <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-warn px-1.5 py-0.5 text-xs font-black text-black tabular-nums">
+                    {avisosSinConfirmar}
+                  </span>
+                )}
               </button>
             ))}
           </div>
