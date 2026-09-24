@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { StockTab } from "@/components/StockTab";
 import {
   LINEA_COLS,
   OPTIMAL_MS,
   PEDIDO_COLS,
-  STORE,
   formatClock,
   formatoLabel,
   pedidoLabel,
@@ -40,7 +40,92 @@ export const Route = createFileRoute("/")({
 const STATION_KEY = "yllt-kds-estacion";
 type Cola = "tienda" | "online";
 
+type Auth = { status: "loading" } | { status: "out" } | { status: "in"; store: string | null };
+
 function KdsPage() {
+  const [auth, setAuth] = useState<Auth>({ status: "loading" });
+  useEffect(() => {
+    const apply = (session: { user: { app_metadata?: Record<string, unknown> } } | null) => {
+      if (!session) return setAuth({ status: "out" });
+      const s = session.user.app_metadata?.store_id;
+      setAuth({ status: "in", store: typeof s === "string" && s ? s : null });
+    };
+    supabase.auth.getSession().then(({ data }) => apply(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => apply(session));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+  if (auth.status === "loading") return <main className="min-h-screen bg-background" />;
+  if (auth.status === "out") return <LoginScreen />;
+  if (!auth.store) return <NoStore />;
+  return <KdsWithStation store={auth.store} />;
+}
+
+function LoginScreen() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setErr(null);
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error) setErr(error.message === "Invalid login credentials" ? "Email o contraseña incorrectos" : error.message);
+    setBusy(false);
+  }
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-background px-6 text-foreground">
+      <div className="text-sm font-semibold tracking-[0.2em] text-brand uppercase">Yo Llevo la Tarta</div>
+      <h1 className="text-5xl font-black">Empezar turno</h1>
+      <form onSubmit={submit} className="flex w-full max-w-md flex-col gap-4">
+        <input
+          type="email"
+          autoComplete="username"
+          required
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="rounded-xl border border-white/20 bg-surface-2 px-5 py-4 text-2xl text-foreground"
+        />
+        <input
+          type="password"
+          autoComplete="current-password"
+          required
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="rounded-xl border border-white/20 bg-surface-2 px-5 py-4 text-2xl text-foreground"
+        />
+        {err && <div className="rounded-xl border-2 border-alert bg-alert/15 px-4 py-3 text-lg">{err}</div>}
+        <button
+          disabled={busy}
+          className="rounded-xl bg-brand py-6 text-3xl font-black text-black disabled:opacity-40"
+        >
+          ENTRAR
+        </button>
+      </form>
+    </main>
+  );
+}
+
+function NoStore() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-background px-6 text-center text-foreground">
+      <div className="rounded-2xl border-4 border-alert bg-alert/15 p-8 text-3xl font-black">
+        Esta cuenta no tiene tienda asignada.
+        <div className="mt-2 text-xl font-semibold">Pide al responsable que te asigne una tienda.</div>
+      </div>
+      <button
+        onClick={() => supabase.auth.signOut()}
+        className="rounded-xl border border-white/30 px-6 py-3 text-xl"
+      >
+        Volver al login
+      </button>
+    </main>
+  );
+}
+
+function KdsWithStation({ store }: { store: string }) {
   const [station, setStation] = useState<number | null>(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -55,7 +140,7 @@ function KdsPage() {
   };
   if (!ready) return <main className="min-h-screen bg-background" />;
   if (!station) return <StationPicker onPick={choose} />;
-  return <KdsScreen station={station} onChangeStation={() => choose(null)} />;
+  return <KdsScreen store={store} station={station} onChangeStation={() => choose(null)} />;
 }
 
 function StationPicker({ onPick }: { onPick: (n: number) => void }) {
@@ -94,8 +179,17 @@ function colaOf(p: Pedido): Cola {
   return p.tipo_pedido === "en_tienda" ? "tienda" : "online";
 }
 
-function KdsScreen({ station, onChangeStation }: { station: number; onChangeStation: () => void }) {
+function KdsScreen({
+  store,
+  station,
+  onChangeStation,
+}: {
+  store: string;
+  station: number;
+  onChangeStation: () => void;
+}) {
   const now = useNow();
+  const [tab, setTab] = useState<"cocina" | "stock">("cocina");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -106,7 +200,7 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
       supabase
         .from("pedidos")
         .select("id", { count: "exact", head: true })
-        .eq("store_id", STORE)
+        .eq("store_id", store)
         .eq("pago", "pagado")
         .eq("estado", "pendiente")
         .is("estacion", null);
@@ -115,7 +209,7 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
       supabase
         .from("pedidos")
         .select(`${PEDIDO_COLS},lineas_pedido(${LINEA_COLS})`)
-        .eq("store_id", STORE)
+        .eq("store_id", store)
         .eq("estado", "preparando")
         .eq("estacion", station)
         .order("cogido_at")
@@ -129,7 +223,7 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
       supabase
         .from("pedidos")
         .select(PEDIDO_COLS)
-        .eq("store_id", STORE)
+        .eq("store_id", store)
         .eq("tipo_pedido", "recoger")
         .in("estado", ["pendiente"])
         .gte("franja_recogida", start)
@@ -138,7 +232,7 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
       supabase
         .from("pedidos")
         .select(PEDIDO_COLS)
-        .eq("store_id", STORE)
+        .eq("store_id", store)
         .in("tipo_pedido", ["recoger", "envio"])
         .eq("estado", "en_nevera")
         .or(
@@ -170,7 +264,7 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
     run(
       () =>
         supabase.rpc("coger_siguiente_pedido", {
-          p_store: STORE,
+          p_store: store,
           p_estacion: station,
           p_cola: cola,
         }),
@@ -292,6 +386,17 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
           <button onClick={onChangeStation} className="text-sm text-foreground/40 underline-offset-4 hover:underline">
             Estación {station} · cambiar
           </button>
+          <div className="flex overflow-hidden rounded-md border border-white/30 text-sm">
+            {(["cocina", "stock"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-3 py-1 font-bold uppercase ${tab === t ? "bg-brand text-black" : ""}`}
+              >
+                {t === "cocina" ? "Cocina" : "Stock"}
+              </button>
+            ))}
+          </div>
           <button
             onClick={() => setHistOpen((v) => !v)}
             className="rounded-md border border-white/30 px-3 py-1 text-sm"
@@ -305,6 +410,12 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
             Pantalla de recogida
           </Link>
           <span className="text-2xl font-bold tabular-nums">{formatClock(now)}</span>
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="rounded-md border border-alert/60 px-3 py-1 text-sm font-bold text-alert"
+          >
+            Cerrar turno
+          </button>
         </div>
       </header>
 
@@ -316,8 +427,13 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
         </div>
       )}
 
+      {tab === "stock" ? (
+        <StockTab />
+      ) : (
+        <>
       {histOpen && (
         <HistoryPanel
+          store={store}
           onClose={() => setHistOpen(false)}
           onReopened={async () => {
             setHistOpen(false);
@@ -330,6 +446,8 @@ function KdsScreen({ station, onChangeStation }: { station: number; onChangeStat
         {column("tienda")}
         {column("online")}
       </div>
+        </>
+      )}
     </main>
   );
 }
@@ -489,7 +607,15 @@ function matchesSearch(p: Pedido, q: string) {
   return Number(m[2]) === Number(p.numero_pedido);
 }
 
-function HistoryPanel({ onClose, onReopened }: { onClose: () => void; onReopened: () => void }) {
+function HistoryPanel({
+  store,
+  onClose,
+  onReopened,
+}: {
+  store: string;
+  onClose: () => void;
+  onReopened: () => void;
+}) {
   const [q, setQ] = useState("");
   const [sel, setSel] = useState<Pedido["id"] | null>(null);
   const [confirm, setConfirm] = useState(false);
@@ -500,7 +626,7 @@ function HistoryPanel({ onClose, onReopened }: { onClose: () => void; onReopened
     const r = await supabase
       .from("pedidos")
       .select(`${PEDIDO_COLS},lineas_pedido(${LINEA_COLS})`)
-      .eq("store_id", STORE)
+      .eq("store_id", store)
       .in("estado", ["en_nevera", "listo"])
       .gte("created_at", start)
       .lt("created_at", end);

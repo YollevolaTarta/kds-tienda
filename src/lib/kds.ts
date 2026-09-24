@@ -4,8 +4,24 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export const supabase = createClient(
   "https://yseuxchiumkwbcovkowu.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzZXV4Y2hpdW1rd2Jjb3Zrb3d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNzY1NDgsImV4cCI6MjEwMzg1MjU0OH0.lZXlL6QfHuilJ5uia92w4KSKeUdwPcn1DUQUjnHQSd0",
-  { auth: { persistSession: false, autoRefreshToken: false } },
+  { auth: { persistSession: true, autoRefreshToken: true } },
 );
+
+/** Cliente anónimo sin sesión, para la pantalla pública del cliente (/pantalla). */
+export const supabaseAnon = createClient(
+  "https://yseuxchiumkwbcovkowu.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzZXV4Y2hpdW1rd2Jjb3Zrb3d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNzY1NDgsImV4cCI6MjEwMzg1MjU0OH0.lZXlL6QfHuilJ5uia92w4KSKeUdwPcn1DUQUjnHQSd0",
+  { auth: { persistSession: false, autoRefreshToken: false, storageKey: "yllt-anon" } },
+);
+
+export function formatKg(n: number | string | null | undefined) {
+  const v = Number(n ?? 0);
+  return v.toLocaleString("es-ES", { maximumFractionDigits: 3 });
+}
+export function parseKg(s: string) {
+  const v = Number(s.trim().replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(v) ? v : NaN;
+}
 
 export const STORE = "Bilbao_CascoViejo";
 export const OPTIMAL_MS = 30_000;
@@ -70,7 +86,12 @@ export function todayRange() {
 }
 
 /** Recarga `load` al montar y ante cualquier cambio en pedidos / lineas_pedido. */
-export function useRealtime<T>(load: () => Promise<T>, initial: T) {
+export function useRealtime<T>(
+  load: () => Promise<T>,
+  initial: T,
+  client: typeof supabase = supabase,
+  tables: string[] = ["pedidos", "lineas_pedido"],
+) {
   const [data, setData] = useState<T>(initial);
   const [error, setError] = useState<string | null>(null);
   const loadRef = useRef(load);
@@ -87,17 +108,16 @@ export function useRealtime<T>(load: () => Promise<T>, initial: T) {
 
   useEffect(() => {
     refresh();
-    const ch = supabase
-      .channel(`kds-${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "lineas_pedido" }, refresh)
-      .subscribe();
+    let ch = client.channel(`kds-${Math.random().toString(36).slice(2)}`);
+    for (const t of tables)
+      ch = ch.on("postgres_changes", { event: "*", schema: "public", table: t }, refresh);
+    ch.subscribe();
     const poll = setInterval(refresh, 30_000);
     return () => {
       clearInterval(poll);
-      supabase.removeChannel(ch);
+      client.removeChannel(ch);
     };
-  }, [refresh]);
+  }, [refresh, client]);
 
   return { data, error, refresh };
 }
