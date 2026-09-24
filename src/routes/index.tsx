@@ -47,7 +47,7 @@ function KdsPage() {
   useEffect(() => {
     const apply = (session: { user: { app_metadata?: Record<string, unknown> } } | null) => {
       if (!session) return setAuth({ status: "out" });
-      const s = session.user.app_metadata?.store_id;
+      const s = session.user.app_metadata?.["store_id"];
       setAuth({ status: "in", store: typeof s === "string" && s ? s : null });
     };
     supabase.auth.getSession().then(({ data }) => apply(data.session));
