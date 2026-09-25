@@ -68,7 +68,7 @@ export function StockTab({ onAvisosChanged }: { onAvisosChanged?: () => Promise<
   return (
     <div className="flex flex-col gap-6">
       {error && (
-        <div className="rounded-xl border border-white/15 bg-surface-2 px-4 py-3 text-lg">
+        <div className="rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">
           Error al leer el stock: {error}
         </div>
       )}
@@ -84,32 +84,32 @@ export function StockTab({ onAvisosChanged }: { onAvisosChanged?: () => Promise<
         />
       ))}
 
-      <section className="rounded-3xl border border-white/10 bg-surface p-5">
-        <h2 className="mb-4 text-3xl font-black tracking-tight">STOCK DE LA TIENDA</h2>
+      <section className="rounded-3xl border border-border bg-surface p-5 shadow-sm">
+        <h2 className="mb-4 text-3xl font-bold tracking-tight">STOCK DE LA TIENDA</h2>
         <div className="grid grid-cols-[1fr_auto_auto] items-baseline gap-x-10 gap-y-2">
-          <div className="text-lg text-foreground/60">Elaboración</div>
-          <div className="text-right text-lg text-foreground/60">En tienda</div>
-          <div className="text-right text-lg text-foreground/60">En camino</div>
+          <div className="text-lg text-muted-foreground">Elaboración</div>
+          <div className="text-right text-lg text-muted-foreground">En tienda</div>
+          <div className="text-right text-lg text-muted-foreground">En camino</div>
           {data.stock.map((r) => {
             const agotado = Number(r.g_en_tienda ?? 0) <= 0;
             const cls = agotado ? "text-alert" : "";
             return (
               <div key={r.elaboracion_id} className="contents">
-                <div className={`border-t border-white/10 pt-2 text-3xl font-bold ${cls}`}>
+                <div className={`border-t border-border pt-2 text-3xl font-bold ${cls}`}>
                   {r.nombre}
-                  {agotado && <span className="ml-3 text-xl font-black">AGOTADO</span>}
+                  {agotado && <span className="ml-3 text-xl font-bold">AGOTADO</span>}
                 </div>
-                <div className={`border-t border-white/10 pt-2 text-right text-4xl font-black tabular-nums ${cls}`}>
+                <div className={`border-t border-border pt-2 text-right text-4xl font-bold tabular-nums ${cls}`}>
                   {formatG(r.g_en_tienda)} g
                 </div>
-                <div className="border-t border-white/10 pt-2 text-right text-3xl font-semibold tabular-nums text-foreground/80">
+                <div className="border-t border-border pt-2 text-right text-3xl font-semibold tabular-nums text-foreground">
                   {formatG(r.g_en_camino)} g
                 </div>
               </div>
             );
           })}
           {data.stock.length === 0 && !error && (
-            <div className="col-span-3 text-xl text-foreground/60">Sin elaboraciones.</div>
+            <div className="col-span-3 text-xl text-muted-foreground">Sin elaboraciones.</div>
           )}
         </div>
       </section>
@@ -144,27 +144,27 @@ function AvisosStock({
   }
 
   return (
-    <section className="rounded-3xl border-2 border-warn/60 bg-surface p-5">
-      <h2 className="text-3xl font-black tracking-tight text-warn">STOCK BAJO MÍNIMOS</h2>
-      {err && <div className="mt-3 rounded-xl border border-alert bg-alert/15 px-4 py-3 text-lg">{err}</div>}
+    <section className="rounded-3xl border border-warn/60 bg-warn-soft p-5">
+      <h2 className="text-3xl font-bold tracking-tight text-foreground">STOCK BAJO MÍNIMOS</h2>
+      {err && <div className="mt-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">{err}</div>}
       <div className="mt-4 flex flex-col gap-3">
         {avisos.map((aviso) => (
           <div
             key={aviso.elaboracion_id}
-            className={`flex min-h-20 items-center gap-5 rounded-xl border border-white/15 px-4 py-3 ${
+            className={`flex min-h-20 items-center gap-5 rounded-xl border border-border bg-surface px-4 py-3 ${
               aviso.ya_agotado ? "opacity-50" : ""
             }`}
           >
-            <div className="min-w-0 flex-1 text-3xl font-bold">{aviso.nombre}</div>
-            <div className="text-right text-4xl font-black tabular-nums text-warn">
+             <div className="min-w-0 flex-1 text-3xl font-bold">{aviso.nombre}</div>
+             <div className="text-right text-4xl font-bold tabular-nums text-foreground">
               {formatG(aviso.g_en_tienda)} g
             </div>
-            {aviso.ya_agotado && <span className="text-xl font-black text-alert">AGOTADO</span>}
+            {aviso.ya_agotado && <span className="text-xl font-bold text-alert">AGOTADO</span>}
             <button
               disabled={busyId !== null}
               onClick={() => cambiar(aviso)}
-              className={`min-w-56 rounded-xl px-5 py-4 text-xl font-black disabled:opacity-40 ${
-                aviso.ya_agotado ? "border border-white/30" : "bg-alert text-black"
+               className={`min-w-56 rounded-xl px-5 py-4 text-xl font-bold disabled:opacity-40 ${
+                 aviso.ya_agotado ? "border border-border bg-surface" : "bg-alert text-destructive-foreground"
               }`}
             >
               {aviso.ya_agotado ? "Ya hay" : "MARCAR AGOTADO"}
@@ -233,22 +233,22 @@ function EnvioCard({
   });
 
   return (
-    <section className="rounded-3xl border-2 border-brand/60 bg-surface p-5">
-      <h2 className="text-3xl font-black tracking-tight text-brand">ENVÍO DEL OBRADOR PENDIENTE</h2>
-      <div className="mt-1 text-xl text-foreground/70">
+    <section className="rounded-3xl border border-brand/40 bg-surface p-5 shadow-sm">
+      <h2 className="text-3xl font-bold tracking-tight text-brand-strong">ENVÍO DEL OBRADOR PENDIENTE</h2>
+      <div className="mt-1 text-xl text-muted-foreground">
         Envío del obrador · {fecha} · enviado por {envio.enviado_email ?? "—"}
       </div>
 
       <div className="mt-4 grid grid-cols-[1fr_auto_auto] items-center gap-x-8 gap-y-3">
-        <div className="text-lg text-foreground/60">Elaboración</div>
-        <div className="text-right text-lg text-foreground/60">Enviados</div>
-        <div className="text-right text-lg text-foreground/60">Gramos recibidos</div>
+        <div className="text-lg text-muted-foreground">Elaboración</div>
+        <div className="text-right text-lg text-muted-foreground">Enviados</div>
+        <div className="text-right text-lg text-muted-foreground">Gramos recibidos</div>
         {lineas.map((l) => {
           const id = String(l.elaboracion_id);
           return (
             <div key={id} className="contents">
               <div className="text-3xl font-bold">{l.nombre}</div>
-              <div className="text-right text-3xl font-black tabular-nums">{formatG(l.g_enviados)} g</div>
+              <div className="text-right text-3xl font-bold tabular-nums">{formatG(l.g_enviados)} g</div>
               <input
                 inputMode="numeric"
                 aria-label={`Gramos recibidos de ${l.nombre}`}
@@ -284,7 +284,7 @@ function EnvioCard({
                   setErr(null);
                   setGramos((current) => ({ ...current, [id]: digits ? formatG(digits) : "" }));
                 }}
-                className="w-40 rounded-xl border border-white/25 bg-surface-2 px-4 py-3 text-right text-3xl font-black tabular-nums text-foreground"
+                className="w-40 rounded-xl border border-input bg-surface px-4 py-3 text-right text-3xl font-bold tabular-nums text-foreground"
               />
             </div>
           );
@@ -296,11 +296,11 @@ function EnvioCard({
           value={nota}
           onChange={(e) => setNota(e.target.value)}
           placeholder="Nota obligatoria: ¿qué diferencias hay?"
-          className="mt-4 w-full rounded-xl border border-warn/60 bg-surface-2 px-4 py-3 text-2xl text-foreground"
+          className="mt-4 w-full rounded-xl border border-warn/60 bg-surface px-4 py-3 text-2xl text-foreground"
           rows={3}
         />
       )}
-      {err && <div className="mt-3 rounded-xl border-2 border-alert bg-alert/15 px-4 py-3 text-lg">{err}</div>}
+      {err && <div className="mt-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">{err}</div>}
 
       <div className="mt-5 grid grid-cols-2 gap-4">
         {!diff ? (
@@ -308,14 +308,14 @@ function EnvioCard({
             <button
               disabled={busy}
               onClick={() => confirmar(false)}
-              className="rounded-xl bg-ok py-6 text-3xl font-black text-black disabled:opacity-40"
+              className="rounded-xl bg-ok py-6 text-3xl font-bold text-destructive-foreground disabled:opacity-40"
             >
               TODO CORRECTO
             </button>
             <button
               disabled={busy}
               onClick={() => setDiff(true)}
-              className="rounded-xl bg-warn py-6 text-3xl font-black text-black disabled:opacity-40"
+              className="rounded-xl bg-warn py-6 text-3xl font-bold text-foreground disabled:opacity-40"
             >
               HAY DIFERENCIAS
             </button>
@@ -328,14 +328,14 @@ function EnvioCard({
                 setDiff(false);
                 setErr(null);
               }}
-              className="rounded-xl border border-white/30 py-6 text-2xl font-bold disabled:opacity-40"
+              className="rounded-xl border border-border py-6 text-2xl font-bold disabled:opacity-40"
             >
               Cancelar
             </button>
             <button
               disabled={busy || !nota.trim()}
               onClick={() => confirmar(true)}
-              className="rounded-xl bg-warn py-6 text-3xl font-black text-black disabled:opacity-40"
+              className="rounded-xl bg-warn py-6 text-3xl font-bold text-foreground disabled:opacity-40"
             >
               CONFIRMAR CON DIFERENCIAS
             </button>

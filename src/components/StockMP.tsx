@@ -40,14 +40,14 @@ function GInput({ value, onChange, label }: { value: string; onChange: (v: strin
         const d = e.target.value.replace(/\D/g, "");
         onChange(d ? fmt(d) : "");
       }}
-      className="w-40 rounded-xl border border-white/25 bg-surface-2 px-4 py-3 text-right text-3xl font-black tabular-nums text-foreground"
+      className="w-40 rounded-xl border border-input bg-surface px-4 py-3 text-right text-3xl font-bold tabular-nums text-foreground"
     />
   );
 }
 
-const btn = "rounded-xl px-5 py-4 text-xl font-black disabled:opacity-40";
+const btn = "rounded-xl px-5 py-4 text-xl font-bold disabled:opacity-40";
 const ErrBox = ({ msg }: { msg: string | null }) =>
-  msg ? <div className="mt-3 rounded-xl border-2 border-alert bg-alert/15 px-4 py-3 text-lg">{msg}</div> : null;
+  msg ? <div className="mt-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">{msg}</div> : null;
 
 async function loadMp() {
   const r = await supabase.from("v_tienda_stock_mp").select("*").order("nombre");
@@ -71,16 +71,16 @@ function Historial({
   const [err, setErr] = useState<string | null>(null);
   return (
     <div className="mt-6">
-      <h3 className="mb-2 text-2xl font-black">{titulo}</h3>
+       <h3 className="mb-2 text-2xl font-bold">{titulo}</h3>
       <ErrBox msg={err} />
       <div className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
-        {items.length === 0 && <div className="text-xl text-foreground/60">Ninguna.</div>}
+       {items.length === 0 && <div className="text-xl text-muted-foreground">Ninguna.</div>}
         {items.map((r) => {
           const anulada = !!r.anulada_at;
           return (
             <div
               key={r.id}
-              className={`flex items-center gap-4 rounded-xl border border-white/10 px-4 py-3 ${anulada ? "text-foreground/40" : ""}`}
+               className={`flex items-center gap-4 rounded-xl border border-border bg-surface px-4 py-3 ${anulada ? "text-muted-foreground" : ""}`}
             >
               <div className={`min-w-0 flex-1 ${anulada ? "line-through" : ""}`}>
                 <div className="text-2xl font-bold">
@@ -99,7 +99,7 @@ function Historial({
                   <span className="text-xl font-bold">¿Seguro?</span>
                   <button
                     disabled={busy}
-                    className={`${btn} bg-alert text-black`}
+                     className={`${btn} bg-alert text-destructive-foreground`}
                     onClick={async () => {
                       setBusy(true);
                       setErr(await anular(r.id));
@@ -109,12 +109,12 @@ function Historial({
                   >
                     Sí
                   </button>
-                  <button className={`${btn} border border-white/30`} onClick={() => setConfirm(null)}>
+                   <button className={`${btn} border border-border`} onClick={() => setConfirm(null)}>
                     Cancelar
                   </button>
                 </div>
               ) : (
-                <button className={`${btn} border border-white/30`} onClick={() => setConfirm(r.id)}>
+                 <button className={`${btn} border border-border`} onClick={() => setConfirm(r.id)}>
                   Anular
                 </button>
               )}
@@ -178,21 +178,21 @@ export function MateriaPrima() {
   }
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-surface p-5">
+    <section className="rounded-3xl border border-border bg-surface p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <h2 className="flex-1 text-3xl font-black tracking-tight">MATERIA PRIMA</h2>
-        <button className={`${btn} border border-white/30`} onClick={() => abrir("recuento")}>
+         <h2 className="flex-1 text-3xl font-bold tracking-tight">MATERIA PRIMA</h2>
+         <button className={`${btn} border border-border`} onClick={() => abrir("recuento")}>
           RECUENTO
         </button>
-        <button className={`${btn} bg-brand text-black`} onClick={() => abrir("entrada")}>
+         <button className={`${btn} bg-brand text-primary-foreground`} onClick={() => abrir("entrada")}>
           + ENTRADA
         </button>
       </div>
       {error && <ErrBox msg={`Error al leer la materia prima: ${error}`} />}
 
       {modo && (
-        <div className="mb-5 rounded-2xl border-2 border-brand/60 bg-surface-2 p-4">
-          <h3 className="text-2xl font-black text-brand">
+         <div className="mb-5 rounded-2xl border border-brand/40 bg-brand-soft p-4">
+           <h3 className="text-2xl font-bold text-brand-strong">
             {modo === "recuento" ? "RECUENTO · cuenta todas" : "NUEVA ENTRADA"}
           </h3>
           {modo === "entrada" && (
@@ -206,7 +206,7 @@ export function MateriaPrima() {
                 <button
                   key={v}
                   onClick={() => setOrigen(v)}
-                  className={`${btn} ${origen === v ? "bg-brand text-black" : "border border-white/30"}`}
+                   className={`${btn} ${origen === v ? "bg-brand text-primary-foreground" : "border border-border bg-surface"}`}
                 >
                   {t}
                 </button>
@@ -231,10 +231,10 @@ export function MateriaPrima() {
           </div>
           <ErrBox msg={err} />
           <div className="mt-4 grid grid-cols-2 gap-4">
-            <button className={`${btn} border border-white/30`} onClick={() => setModo(null)}>
+             <button className={`${btn} border border-border bg-surface`} onClick={() => setModo(null)}>
               Cancelar
             </button>
-            <button disabled={busy} className={`${btn} bg-ok text-black`} onClick={guardar}>
+             <button disabled={busy} className={`${btn} bg-ok text-destructive-foreground`} onClick={guardar}>
               GUARDAR
             </button>
           </div>
@@ -245,15 +245,15 @@ export function MateriaPrima() {
         {data.mp.map((r) => {
           const rojo = Number(r.g_en_tienda ?? 0) <= 0;
           return (
-            <div key={r.materia_prima_id} className={`border-t border-white/10 py-2 ${rojo ? "text-alert" : ""}`}>
+             <div key={r.materia_prima_id} className={`border-t border-border py-2 ${rojo ? "text-alert" : ""}`}>
               <div className="flex items-baseline gap-4">
                 <div className="flex-1 text-3xl font-bold">
                   {r.nombre}
-                  {rojo && <span className="ml-3 text-xl font-black">AGOTADO</span>}
+                  {rojo && <span className="ml-3 text-xl font-bold">AGOTADO</span>}
                 </div>
-                <div className="text-4xl font-black tabular-nums">{fmt(r.g_en_tienda)} g</div>
+                <div className="text-4xl font-bold tabular-nums">{fmt(r.g_en_tienda)} g</div>
               </div>
-              <div className={`text-lg ${rojo ? "" : "text-foreground/60"}`}>
+               <div className={`text-lg ${rojo ? "" : "text-muted-foreground"}`}>
                 {r.ultimo_recuento_at
                   ? `Contado ${fecha(r.ultimo_recuento_at)} por ${r.ultimo_recuento_por ?? "—"}`
                   : "Nunca se ha contado"}
@@ -261,7 +261,7 @@ export function MateriaPrima() {
             </div>
           );
         })}
-        {data.mp.length === 0 && !error && <div className="text-xl text-foreground/60">Sin materias primas.</div>}
+         {data.mp.length === 0 && !error && <div className="text-xl text-muted-foreground">Sin materias primas.</div>}
       </div>
 
       <Historial
@@ -354,20 +354,20 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
   }
 
   const fila = (id: string, nombre: string, g: number | string | null, v: string, set: (v: string) => void) => (
-    <div key={id} className="flex items-center gap-4 border-t border-white/10 py-2">
+    <div key={id} className="flex items-center gap-4 border-t border-border py-2">
       <div className="flex-1 text-3xl font-bold">{nombre}</div>
-      <div className="text-xl text-foreground/60 tabular-nums">hay {fmt(g)} g</div>
+      <div className="text-xl text-muted-foreground tabular-nums">hay {fmt(g)} g</div>
       <GInput label={`Gramos a tirar de ${nombre}`} value={v} onChange={set} />
       <span className="text-2xl">g</span>
     </div>
   );
 
   return (
-    <section className="rounded-3xl border-2 border-alert/60 bg-surface p-5">
+    <section className="rounded-3xl border border-alert/40 bg-surface p-5 shadow-sm">
       <div className="flex items-center gap-3">
-        <h2 className="flex-1 text-3xl font-black tracking-tight text-alert">MERMAS</h2>
+         <h2 className="flex-1 text-3xl font-bold tracking-tight text-alert">MERMAS</h2>
         <button
-          className="rounded-xl bg-alert px-8 py-5 text-3xl font-black text-black"
+           className="rounded-xl bg-alert px-8 py-5 text-3xl font-bold text-destructive-foreground"
           onClick={() => {
             reset();
             setOpen(true);
@@ -380,35 +380,35 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
 
       {open && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-background/95 p-6">
-          <div className="mx-auto max-w-4xl rounded-3xl border-2 border-alert/60 bg-surface p-6">
+           <div className="mx-auto max-w-4xl rounded-3xl border border-alert/40 bg-surface p-6 shadow-sm">
             <div className="flex items-center">
-              <h2 className="flex-1 text-4xl font-black text-alert">TIRAR PRODUCTO</h2>
-              <button className={`${btn} border border-white/30`} onClick={() => setOpen(false)}>
+               <h2 className="flex-1 text-4xl font-bold text-alert">TIRAR PRODUCTO</h2>
+               <button className={`${btn} border border-border`} onClick={() => setOpen(false)}>
                 Cerrar
               </button>
             </div>
 
             {!revisar ? (
               <>
-                <h3 className="mt-5 text-2xl font-black">Producto del obrador</h3>
+                <h3 className="mt-5 text-2xl font-bold">Producto del obrador</h3>
                 {elabs.map((e) =>
                   fila(String(e.elaboracion_id), e.nombre, e.g_en_tienda, elab[e.elaboracion_id] ?? "", (v) =>
                     setElab((c) => ({ ...c, [e.elaboracion_id]: v })),
                   ),
                 )}
-                <h3 className="mt-5 text-2xl font-black">Materia prima</h3>
+                <h3 className="mt-5 text-2xl font-bold">Materia prima</h3>
                 {data.mp.map((m) =>
                   fila(String(m.materia_prima_id), m.nombre, m.g_en_tienda, mat[m.materia_prima_id] ?? "", (v) =>
                     setMat((c) => ({ ...c, [m.materia_prima_id]: v })),
                   ),
                 )}
-                <h3 className="mt-5 text-2xl font-black">Motivo</h3>
+                <h3 className="mt-5 text-2xl font-bold">Motivo</h3>
                 <div className="mt-2 flex flex-wrap gap-3">
                   {MOTIVOS.map((m) => (
                     <button
                       key={m}
                       onClick={() => setMotivo(m)}
-                      className={`${btn} ${motivo === m ? "bg-warn text-black" : "border border-white/30"}`}
+                       className={`${btn} ${motivo === m ? "bg-warn text-foreground" : "border border-border"}`}
                     >
                       {m}
                     </button>
@@ -423,18 +423,18 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
                   />
                 )}
                 <ErrBox msg={err} />
-                <button className={`${btn} mt-5 w-full bg-alert py-6 text-3xl text-black`} onClick={siguiente}>
+                 <button className={`${btn} mt-5 w-full bg-alert py-6 text-3xl text-destructive-foreground`} onClick={siguiente}>
                   REVISAR Y TIRAR
                 </button>
               </>
             ) : (
               <>
-                <h3 className="mt-5 text-3xl font-black">Vas a tirar:</h3>
+                <h3 className="mt-5 text-3xl font-bold">Vas a tirar:</h3>
                 <div className="mt-3 flex flex-col gap-2">
                   {resumen.map(([n, g]) => (
-                    <div key={n} className="flex items-baseline border-t border-white/10 py-2">
+                     <div key={n} className="flex items-baseline border-t border-border py-2">
                       <div className="flex-1 text-3xl font-bold">{n}</div>
-                      <div className="text-4xl font-black tabular-nums text-alert">{fmt(g)} g</div>
+                      <div className="text-4xl font-bold tabular-nums text-alert">{fmt(g)} g</div>
                     </div>
                   ))}
                 </div>
@@ -443,12 +443,12 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
                 </div>
                 <ErrBox msg={err} />
                 <div className="mt-5 grid grid-cols-2 gap-4">
-                  <button className={`${btn} border border-white/30 py-6 text-2xl`} onClick={() => setRevisar(false)}>
+                   <button className={`${btn} border border-border py-6 text-2xl`} onClick={() => setRevisar(false)}>
                     Volver
                   </button>
                   <button
                     disabled={busy}
-                    className={`${btn} bg-alert py-6 text-3xl text-black`}
+                     className={`${btn} bg-alert py-6 text-3xl text-destructive-foreground`}
                     onClick={confirmar}
                   >
                     SÍ, TIRAR

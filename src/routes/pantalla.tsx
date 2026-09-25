@@ -70,31 +70,31 @@ function PickupScreen() {
     .sort((a, b) => (b.listo_at ?? "").localeCompare(a.listo_at ?? ""));
 
   return (
-    <main className="grid min-h-screen grid-cols-2 bg-black text-center">
-      <div className="absolute top-6 left-8 text-sm font-semibold tracking-[0.2em] text-brand uppercase">
-        Yo Llevo la Tarta
+    <main className="grid min-h-screen grid-cols-2 bg-background text-center text-foreground">
+      <div className="absolute top-6 left-8 text-sm font-semibold tracking-[0.2em] text-brand-strong uppercase">
+        <span className="mr-2 inline-block size-2 rounded-full bg-brand" />Yo Llevo la Tarta
       </div>
-      <div className="absolute top-6 right-8 text-xl font-bold tabular-nums text-white/40">
+      <div className="absolute top-6 right-8 text-xl font-semibold tabular-nums text-muted-foreground">
         {formatClock(now)}
       </div>
       <h1 className="sr-only">Estado de los pedidos</h1>
 
-      <section className="flex flex-col items-center border-r border-white/10 px-8 pt-24">
-        <h2 className="text-5xl font-black tracking-wide text-white/60">PREPARANDO</h2>
+      <section className="flex flex-col items-center border-r border-border px-8 pt-24">
+        <h2 className="text-5xl font-bold tracking-wide text-muted-foreground">PREPARANDO</h2>
         <div className="mt-12 flex flex-wrap justify-center gap-x-12 gap-y-6">
           {data.prep.map((p) => (
-            <span key={p.id} className="text-[7rem] leading-none font-black text-white/70 tabular-nums">
+            <span key={p.id} className="rounded-3xl bg-surface-2 px-8 py-4 text-[7rem] leading-none font-bold text-muted-foreground tabular-nums">
               {pedidoLabel(p)}
             </span>
           ))}
         </div>
       </section>
 
-      <section className="flex flex-col items-center px-8 pt-24">
-        <h2 className="text-5xl font-black tracking-wide text-brand">LISTO</h2>
+      <section className="flex flex-col items-center bg-brand-soft px-8 pt-24">
+        <h2 className="text-5xl font-bold tracking-wide text-brand-strong">LISTO</h2>
         <div className="mt-12 flex flex-wrap justify-center gap-x-12 gap-y-6">
           {ready.map((p) => (
-            <span key={p.id} className="text-[9rem] leading-none font-black text-brand tabular-nums">
+            <span key={p.id} className="animate-in zoom-in-95 fade-in rounded-3xl border-2 border-brand bg-surface px-10 py-5 text-[9rem] leading-none font-bold text-foreground tabular-nums duration-300">
               {pedidoLabel(p)}
             </span>
           ))}
