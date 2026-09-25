@@ -97,7 +97,7 @@ export function StockTab({ onAvisosChanged }: { onAvisosChanged?: () => Promise<
               <div key={r.elaboracion_id} className="contents">
                 <div className={`border-t border-border pt-2 text-3xl font-bold ${cls}`}>
                   {r.nombre}
-                  {agotado && <span className="ml-3 text-xl font-black">AGOTADO</span>}
+                  {agotado && <span className="ml-3 text-xl font-bold">AGOTADO</span>}
                 </div>
                 <div className={`border-t border-border pt-2 text-right text-4xl font-bold tabular-nums ${cls}`}>
                   {formatG(r.g_en_tienda)} g
@@ -159,7 +159,7 @@ function AvisosStock({
              <div className="text-right text-4xl font-bold tabular-nums text-foreground">
               {formatG(aviso.g_en_tienda)} g
             </div>
-            {aviso.ya_agotado && <span className="text-xl font-black text-alert">AGOTADO</span>}
+            {aviso.ya_agotado && <span className="text-xl font-bold text-alert">AGOTADO</span>}
             <button
               disabled={busyId !== null}
               onClick={() => cambiar(aviso)}

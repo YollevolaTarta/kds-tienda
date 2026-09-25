@@ -249,9 +249,9 @@ export function MateriaPrima() {
               <div className="flex items-baseline gap-4">
                 <div className="flex-1 text-3xl font-bold">
                   {r.nombre}
-                  {rojo && <span className="ml-3 text-xl font-black">AGOTADO</span>}
+                  {rojo && <span className="ml-3 text-xl font-bold">AGOTADO</span>}
                 </div>
-                <div className="text-4xl font-black tabular-nums">{fmt(r.g_en_tienda)} g</div>
+                <div className="text-4xl font-bold tabular-nums">{fmt(r.g_en_tienda)} g</div>
               </div>
                <div className={`text-lg ${rojo ? "" : "text-muted-foreground"}`}>
                 {r.ultimo_recuento_at
@@ -390,19 +390,19 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
 
             {!revisar ? (
               <>
-                <h3 className="mt-5 text-2xl font-black">Producto del obrador</h3>
+                <h3 className="mt-5 text-2xl font-bold">Producto del obrador</h3>
                 {elabs.map((e) =>
                   fila(String(e.elaboracion_id), e.nombre, e.g_en_tienda, elab[e.elaboracion_id] ?? "", (v) =>
                     setElab((c) => ({ ...c, [e.elaboracion_id]: v })),
                   ),
                 )}
-                <h3 className="mt-5 text-2xl font-black">Materia prima</h3>
+                <h3 className="mt-5 text-2xl font-bold">Materia prima</h3>
                 {data.mp.map((m) =>
                   fila(String(m.materia_prima_id), m.nombre, m.g_en_tienda, mat[m.materia_prima_id] ?? "", (v) =>
                     setMat((c) => ({ ...c, [m.materia_prima_id]: v })),
                   ),
                 )}
-                <h3 className="mt-5 text-2xl font-black">Motivo</h3>
+                <h3 className="mt-5 text-2xl font-bold">Motivo</h3>
                 <div className="mt-2 flex flex-wrap gap-3">
                   {MOTIVOS.map((m) => (
                     <button
@@ -429,12 +429,12 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
               </>
             ) : (
               <>
-                <h3 className="mt-5 text-3xl font-black">Vas a tirar:</h3>
+                <h3 className="mt-5 text-3xl font-bold">Vas a tirar:</h3>
                 <div className="mt-3 flex flex-col gap-2">
                   {resumen.map(([n, g]) => (
                      <div key={n} className="flex items-baseline border-t border-border py-2">
                       <div className="flex-1 text-3xl font-bold">{n}</div>
-                      <div className="text-4xl font-black tabular-nums text-alert">{fmt(g)} g</div>
+                      <div className="text-4xl font-bold tabular-nums text-alert">{fmt(g)} g</div>
                     </div>
                   ))}
                 </div>
