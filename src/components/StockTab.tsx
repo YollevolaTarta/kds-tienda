@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase, useRealtime } from "@/lib/kds";
+import { MateriaPrima, Tirar } from "@/components/StockMP";
 
 type EnvioLinea = { elaboracion_id: number | string; nombre: string; g_enviados: number | string };
 type Envio = {
   traspaso_id: number;
   store_id: string;
   created_at: string;
+  enviado_email: string | null;
   lineas: EnvioLinea[] | null;
 };
 type StockRow = {
@@ -111,6 +113,8 @@ export function StockTab({ onAvisosChanged }: { onAvisosChanged?: () => Promise<
           )}
         </div>
       </section>
+      <MateriaPrima />
+      <Tirar stock={data.stock} />
     </div>
   );
 }
@@ -232,7 +236,7 @@ function EnvioCard({
     <section className="rounded-3xl border-2 border-brand/60 bg-surface p-5">
       <h2 className="text-3xl font-black tracking-tight text-brand">ENVÍO DEL OBRADOR PENDIENTE</h2>
       <div className="mt-1 text-xl text-foreground/70">
-        {fecha}
+        Envío del obrador · {fecha} · enviado por {envio.enviado_email ?? "—"}
       </div>
 
       <div className="mt-4 grid grid-cols-[1fr_auto_auto] items-center gap-x-8 gap-y-3">
