@@ -74,10 +74,11 @@ function LoginScreen() {
     setBusy(false);
   }
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-background px-6 text-foreground">
-      <div className="text-sm font-semibold tracking-[0.2em] text-brand uppercase">Yo Llevo la Tarta</div>
-      <h1 className="text-5xl font-black">Empezar turno</h1>
-      <form onSubmit={submit} className="flex w-full max-w-md flex-col gap-4">
+    <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
+      <div className="w-full max-w-md rounded-3xl border border-border bg-surface p-8 shadow-sm">
+      <div className="text-sm font-semibold tracking-[0.2em] text-brand-strong uppercase"><span className="mr-2 inline-block size-2 rounded-full bg-brand" />Yo Llevo la Tarta</div>
+      <h1 className="mt-6 text-5xl font-bold">Empezar turno</h1>
+      <form onSubmit={submit} className="mt-8 flex flex-col gap-4">
         <input
           type="email"
           autoComplete="username"
@@ -85,7 +86,7 @@ function LoginScreen() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="rounded-xl border border-white/20 bg-surface-2 px-5 py-4 text-2xl text-foreground"
+          className="rounded-xl border border-input bg-surface px-5 py-4 text-2xl text-foreground outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft"
         />
         <input
           type="password"
@@ -94,16 +95,17 @@ function LoginScreen() {
           placeholder="Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="rounded-xl border border-white/20 bg-surface-2 px-5 py-4 text-2xl text-foreground"
+          className="rounded-xl border border-input bg-surface px-5 py-4 text-2xl text-foreground outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft"
         />
-        {err && <div className="rounded-xl border-2 border-alert bg-alert/15 px-4 py-3 text-lg">{err}</div>}
+        {err && <div className="rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">{err}</div>}
         <button
           disabled={busy}
-          className="rounded-xl bg-brand py-6 text-3xl font-black text-black disabled:opacity-40"
+          className="rounded-xl bg-brand py-6 text-3xl font-bold text-primary-foreground active:scale-[0.99] disabled:opacity-40"
         >
           ENTRAR
         </button>
       </form>
+      </div>
     </main>
   );
 }
@@ -111,13 +113,13 @@ function LoginScreen() {
 function NoStore() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-background px-6 text-center text-foreground">
-      <div className="rounded-2xl border-4 border-alert bg-alert/15 p-8 text-3xl font-black">
+      <div className="rounded-3xl border border-alert/40 bg-surface p-8 text-3xl font-bold shadow-sm">
         Esta cuenta no tiene tienda asignada.
         <div className="mt-2 text-xl font-semibold">Pide al responsable que te asigne una tienda.</div>
       </div>
       <button
         onClick={() => supabase.auth.signOut()}
-        className="rounded-xl border border-white/30 px-6 py-3 text-xl"
+        className="rounded-xl border border-border bg-surface px-6 py-3 text-xl"
       >
         Volver al login
       </button>
@@ -145,21 +147,24 @@ function KdsWithStation({ store }: { store: string }) {
 
 function StationPicker({ onPick }: { onPick: (n: number) => void }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-10 bg-background text-foreground">
-      <div className="text-sm font-semibold tracking-[0.2em] text-brand uppercase">
+    <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
+      <div className="rounded-3xl border border-border bg-surface p-10 text-center shadow-sm">
+      <div className="text-sm font-semibold tracking-[0.2em] text-brand-strong uppercase">
+        <span className="mr-2 inline-block size-2 rounded-full bg-brand" />
         Yo Llevo la Tarta
       </div>
-      <h1 className="text-5xl font-black">¿Qué estación es esta?</h1>
-      <div className="flex gap-8">
+      <h1 className="mt-8 text-5xl font-bold">¿Qué estación es esta?</h1>
+      <div className="mt-10 flex gap-8">
         {[1, 2].map((n) => (
           <button
             key={n}
             onClick={() => onPick(n)}
-            className="rounded-3xl bg-brand px-20 py-12 text-6xl font-black text-black active:scale-[0.99]"
+            className="rounded-3xl bg-brand-soft px-20 py-12 text-6xl font-bold text-foreground ring-1 ring-brand/40 active:scale-[0.99]"
           >
             {n}
           </button>
         ))}
+      </div>
       </div>
     </main>
   );
@@ -303,22 +308,22 @@ function KdsScreen({
     const count = cola === "tienda" ? data.countTienda : data.countOnline;
     return (
       <section
-        className={`rounded-3xl border bg-surface p-5 ${
-          cola === "online" ? "border-brand/40" : "border-white/10"
+        className={`rounded-3xl border bg-surface p-5 shadow-sm ${
+          cola === "online" ? "border-brand/40 border-t-4" : "border-border"
         }`}
       >
         <div className="mb-4 flex items-baseline justify-between">
           <h2
-            className={`text-3xl font-black tracking-tight ${cola === "online" ? "text-brand" : ""}`}
+             className={`text-3xl font-bold tracking-tight ${cola === "online" ? "text-brand-strong" : "text-foreground"}`}
           >
             {title}
           </h2>
-          <span className="text-xl text-foreground/60 tabular-nums">{count} en cola</span>
+          <span className="text-xl text-muted-foreground tabular-nums">{count} en cola</span>
         </div>
 
         {cola === "online" && data.alert.length > 0 && (
-          <div className="mb-4 animate-pulse rounded-2xl border-4 border-alert bg-alert/20 p-4 text-center">
-            <div className="text-3xl font-black text-alert">¡RECOGIDA EN MENOS DE 15 MIN!</div>
+          <div className="mb-4 rounded-2xl border border-alert/40 border-l-[6px] bg-alert-soft p-4 text-center">
+            <div className="flex items-center justify-center gap-3 text-3xl font-bold text-alert"><span className="size-3 shrink-0 animate-pulse rounded-full bg-alert" />¡RECOGIDA EN MENOS DE 15 MIN!</div>
             <div className="mt-1 text-2xl font-bold tabular-nums">
               {data.alert
                 .map((p) =>
@@ -338,16 +343,16 @@ function KdsScreen({
             onSoltar={() => data.mine && soltar(data.mine.id)}
           />
         ) : (
-          <div className="flex flex-col items-center gap-6 rounded-2xl border border-white/10 bg-surface-2 p-8">
+           <div className="flex flex-col items-center gap-6 rounded-2xl bg-surface-2 p-8">
             <div className="text-center">
-              <div className="text-7xl font-black tabular-nums">{count}</div>
-              <div className="text-xl text-foreground/60">pedidos esperando</div>
+              <div className="text-7xl font-bold tabular-nums">{count}</div>
+              <div className="text-xl text-muted-foreground">pedidos esperando</div>
             </div>
             <button
               disabled={busy || !!data.mine}
               onClick={() => coger(cola)}
-              className={`w-full rounded-xl py-8 text-4xl font-black tracking-wide text-black active:scale-[0.99] disabled:opacity-30 ${
-                cola === "online" ? "bg-brand" : "bg-ok"
+              className={`w-full rounded-2xl py-8 text-4xl font-bold tracking-wide active:scale-[0.99] disabled:opacity-40 ${
+                cola === "online" ? "bg-brand text-primary-foreground" : "bg-ok text-destructive-foreground"
               }`}
             >
               COGER SIGUIENTE
@@ -357,26 +362,26 @@ function KdsScreen({
 
         {cola === "online" && data.entregar.length > 0 && (
           <div className="mt-6">
-            <h3 className="mb-3 text-xl font-bold text-foreground/70">En nevera · para entregar</h3>
+            <h3 className="mb-3 text-xl font-bold text-muted-foreground">En nevera · para entregar</h3>
             <div className="flex flex-col gap-3">
               {data.entregar.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between rounded-xl border border-white/15 px-4 py-3"
+                  className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3"
                 >
                   <span className="flex items-center gap-3">
-                    <span className="text-3xl font-black tabular-nums">{pedidoLabel(p)}</span>
-                    <span className="rounded-md border border-white/30 px-2 py-0.5 text-sm font-bold uppercase">
+                    <span className="text-3xl font-bold tabular-nums">{pedidoLabel(p)}</span>
+                    <span className="rounded-md border border-brand/50 bg-brand-soft px-2 py-0.5 text-sm font-bold uppercase">
                       {p.tipo_pedido === "envio" ? "Envío" : "Recogida"}
                     </span>
                   </span>
-                  <span className="text-xl text-brand tabular-nums">
+                  <span className="text-xl text-brand-strong tabular-nums">
                     {p.franja_recogida ? formatClock(p.franja_recogida) : ""}
                   </span>
                   <button
                     disabled={busy}
                     onClick={() => entregado(p.id)}
-                    className="rounded-lg bg-brand px-5 py-3 text-lg font-bold text-black disabled:opacity-40"
+                    className="rounded-xl bg-brand px-5 py-3 text-lg font-bold text-primary-foreground active:scale-[0.99] disabled:opacity-40"
                   >
                     LISTO
                   </button>
@@ -390,25 +395,25 @@ function KdsScreen({
   };
 
   return (
-    <main className="min-h-screen bg-background px-6 py-4 text-foreground">
-      <header className="mb-4 flex items-center justify-between">
-        <div className="text-sm font-semibold tracking-[0.2em] text-brand uppercase">
-          Yo Llevo la Tarta
+    <main className="min-h-screen bg-background px-6 pb-6 text-foreground">
+      <header className="mb-4 -mx-6 flex items-center justify-between border-b border-border bg-surface px-6 py-4">
+        <div className="text-sm font-semibold tracking-[0.2em] text-brand-strong uppercase">
+          <span className="mr-2 inline-block size-2 rounded-full bg-brand" />Yo Llevo la Tarta
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={onChangeStation} className="text-sm text-foreground/40 underline-offset-4 hover:underline">
+          <button onClick={onChangeStation} className="rounded-xl border border-border px-3 py-2 text-sm text-muted-foreground">
             Estación {station} · cambiar
           </button>
-          <div className="flex overflow-hidden rounded-md border border-white/30 text-sm">
+          <div className="flex rounded-xl bg-muted p-1 text-sm">
             {(["cocina", "stock"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-3 py-1 font-bold uppercase ${tab === t ? "bg-brand text-black" : ""}`}
+                className={`rounded-lg px-3 py-1 font-semibold uppercase ${tab === t ? "border border-border bg-surface text-foreground" : "text-muted-foreground"}`}
               >
                 {t === "cocina" ? "Cocina" : "Stock"}
                 {t === "stock" && avisosSinConfirmar > 0 && (
-                  <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-warn px-1.5 py-0.5 text-xs font-black text-black tabular-nums">
+                  <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-warn px-1.5 py-0.5 text-xs font-bold text-foreground tabular-nums">
                     {avisosSinConfirmar}
                   </span>
                 )}
@@ -417,20 +422,20 @@ function KdsScreen({
           </div>
           <button
             onClick={() => setHistOpen((v) => !v)}
-            className="rounded-md border border-white/30 px-3 py-1 text-sm"
+            className="rounded-xl border border-border px-3 py-2 text-sm"
           >
             Historial de hoy
           </button>
           <Link
             to="/pantalla"
-            className="rounded-md border border-brand/50 px-3 py-1 text-sm text-brand"
+            className="rounded-xl border border-border px-3 py-2 text-sm text-foreground"
           >
             Pantalla de recogida
           </Link>
-          <span className="text-2xl font-bold tabular-nums">{formatClock(now)}</span>
+          <span className="text-2xl font-semibold tabular-nums">{formatClock(now)}</span>
           <button
             onClick={() => supabase.auth.signOut()}
-            className="rounded-md border border-alert/60 px-3 py-1 text-sm font-bold text-alert"
+            className="rounded-xl border border-alert/40 px-3 py-2 text-sm font-semibold text-alert"
           >
             Cerrar turno
           </button>
@@ -440,7 +445,7 @@ function KdsScreen({
       <h1 className="sr-only">Kitchen Display System — Yo Llevo la Tarta</h1>
 
       {(msg || error) && (
-        <div className="mb-4 rounded-xl border border-white/15 bg-surface-2 px-4 py-3 text-lg text-foreground/80">
+        <div className="mb-4 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">
           {msg ?? `Sin conexión con la base: ${error}`}
         </div>
       )}
@@ -501,16 +506,16 @@ function LineaView({ l }: { l: Linea }) {
       : liquidoTxt.charAt(0).toUpperCase() + liquidoTxt.slice(1)
     : null;
   return (
-    <div className="rounded-xl border border-white/15 bg-background/20 p-4 leading-tight text-foreground">
-      <div className="text-4xl font-black">
+    <div className="rounded-2xl bg-surface-2 p-4 leading-tight text-foreground">
+      <div className="text-4xl font-bold">
         {formatoLabel(l.formato)}
         {shakeTxt && ` · ${shakeTxt}`}
       </div>
       <div className="mt-2 text-3xl font-semibold">{receta ?? l.crema}</div>
-      {toppings && <div className="mt-2 text-2xl font-semibold">{toppings}</div>}
+      {toppings && <div className="mt-2 text-2xl font-medium">{toppings}</div>}
       {l.foto && (
-        <div className="mt-2 animate-pulse rounded-xl border-4 border-warn bg-warn/20 px-3 py-2 text-center text-2xl font-black text-warn">
-          ★ DECORACIÓN SORPRESA · la eliges tú ★
+        <div className="mt-2 rounded-xl border border-warn bg-warn-soft px-3 py-2 text-center text-2xl font-bold text-foreground">
+          <span className="animate-pulse text-warn">★</span> DECORACIÓN SORPRESA · la eliges tú <span className="animate-pulse text-warn">★</span>
         </div>
       )}
     </div>
@@ -544,10 +549,10 @@ function OrderCard({
     const toneText = tone === "alert" ? "text-alert" : tone === "warn" ? "text-warn" : "text-ok";
     const toneBg = tone === "alert" ? "bg-alert" : tone === "warn" ? "bg-warn" : "bg-ok";
     right = (
-      <div className={`text-3xl font-bold tabular-nums ${toneText}`}>{elapsed}s / 30s</div>
+      <div className={`text-3xl font-semibold tabular-nums ${toneText}`}>{elapsed}s / 30s</div>
     );
     bar = (
-      <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-white/10">
+      <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-surface-2">
         <div className={`h-full ${toneBg}`} style={{ width: `${ratio * 100}%` }} />
       </div>
     );
@@ -555,33 +560,33 @@ function OrderCard({
     const mins = Math.round((new Date(order.franja_recogida).getTime() - now) / 60000);
     right = (
       <div className="text-right">
-        <div className="text-3xl font-bold tabular-nums text-brand">
+        <div className="text-3xl font-semibold tabular-nums text-brand-strong">
           {formatClock(order.franja_recogida)}
         </div>
-        <div className={`text-xl tabular-nums ${mins < 0 ? "text-alert" : "text-foreground/70"}`}>
+        <div className={`text-xl tabular-nums ${mins < 0 ? "text-alert" : "text-muted-foreground"}`}>
           {mins < 0 ? `hace ${Math.abs(mins)} min` : `en ${mins} min`}
         </div>
       </div>
     );
   } else {
     right = (
-      <div className="rounded-lg border-2 border-brand px-3 py-1 text-2xl font-black text-brand">
+      <div className="rounded-lg border border-brand/50 bg-brand-soft px-3 py-1 text-2xl font-bold text-foreground">
         ENVÍO
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-surface-2 p-5">
+    <div className="rounded-2xl border border-border bg-surface p-5">
       <div className="flex items-start justify-between gap-4">
-        <div className="text-6xl font-black tracking-tight">{pedidoLabel(order)}</div>
+        <div className="text-6xl font-bold tracking-tight">{pedidoLabel(order)}</div>
         {right}
       </div>
       <div className="mt-3 flex flex-col gap-4">
         {groups.map((g, i) =>
           g.pack ? (
-            <div key={i} className="rounded-xl border border-brand/40 p-3">
-              <div className="mb-2 text-lg font-bold tracking-wide text-brand uppercase">
+             <div key={i} className="rounded-2xl border border-brand/40 p-3">
+               <div className="mb-2 text-lg font-semibold tracking-wide text-brand-strong uppercase">
                 {g.pack}
               </div>
               <div className="flex flex-col gap-3">
@@ -594,20 +599,20 @@ function OrderCard({
             g.lines[0] ? <LineaView key={i} l={g.lines[0]} /> : null
           ),
         )}
-        {lines.length === 0 && <div className="text-foreground/50">Sin líneas</div>}
+        {lines.length === 0 && <div className="text-muted-foreground">Sin líneas</div>}
       </div>
       {bar}
       <button
         disabled={busy}
         onClick={onListo}
-        className="mt-4 w-full rounded-xl bg-ok py-5 text-3xl font-black tracking-wide text-black active:scale-[0.99] disabled:opacity-40"
+        className="mt-4 w-full rounded-2xl bg-ok py-5 text-3xl font-bold tracking-wide text-destructive-foreground active:scale-[0.99] disabled:opacity-40"
       >
         {isTienda ? "LISTO" : "EN NEVERA"}
       </button>
       <button
         disabled={busy}
         onClick={onSoltar}
-        className="mt-3 w-full text-center text-sm text-foreground/40 underline-offset-4 hover:underline"
+        className="mt-3 w-full text-center text-sm text-muted-foreground underline-offset-4 hover:underline"
       >
         Devolver a la cola
       </button>
@@ -686,28 +691,28 @@ function HistoryPanel({
   };
 
   return (
-    <div className="mb-4 rounded-3xl border border-white/20 bg-surface p-5">
+    <div className="mb-4 rounded-3xl border border-border bg-surface p-5 shadow-sm">
       <div className="mb-4 flex items-center gap-4">
-        <h2 className="text-3xl font-black">Historial de hoy</h2>
+        <h2 className="text-3xl font-bold">Historial de hoy</h2>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar nº (7 o T-07)"
-          className="flex-1 rounded-xl border border-white/20 bg-surface-2 px-4 py-3 text-2xl text-foreground"
+          className="flex-1 rounded-xl border border-input bg-surface px-4 py-3 text-2xl text-foreground outline-none focus:border-brand"
         />
-        <button onClick={onClose} className="rounded-xl border border-white/30 px-5 py-3 text-xl font-bold">
+        <button onClick={onClose} className="rounded-xl border border-border px-5 py-3 text-xl font-bold">
           Cerrar
         </button>
       </div>
       {(err || error) && (
-        <div className="mb-3 rounded-xl border border-alert bg-alert/20 px-4 py-3 text-lg">
+        <div className="mb-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">
           {err ?? `Error: ${error}`}
         </div>
       )}
       <div className="grid grid-cols-2 gap-4">
         {([["T", listT], ["W", listW]] as const).map(([titulo, lista]) => (
           <div key={titulo}>
-            <h3 className="mb-2 text-xl font-bold text-foreground/70">Serie {titulo}</h3>
+            <h3 className="mb-2 text-xl font-bold text-muted-foreground">Serie {titulo}</h3>
             <div className="flex max-h-[40vh] flex-col gap-2 overflow-y-auto pr-1">
               {lista.map((p) => (
                 <button
@@ -718,24 +723,24 @@ function HistoryPanel({
                     setErr(null);
                   }}
                   className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left ${
-                    sel === p.id ? "border-brand bg-surface-2" : "border-white/15"
+                    sel === p.id ? "border-brand bg-brand-soft" : "border-border bg-surface"
                   }`}
                 >
                   <span className="flex items-center gap-3">
-                    <span className="text-3xl font-black tabular-nums">{pedidoLabel(p)}</span>
+                    <span className="text-3xl font-bold tabular-nums">{pedidoLabel(p)}</span>
                     {reabierto(p.ciclos) && (
-                      <span className="rounded-md bg-warn px-2 py-0.5 text-sm font-black text-black">
+                      <span className="rounded-md bg-warn px-2 py-0.5 text-sm font-bold text-foreground">
                         REABIERTO
                       </span>
                     )}
                   </span>
                   <span className="text-right text-lg">
                     <div>{tipoLabel(p.tipo_pedido)} · Est. {p.estacion ?? "-"}</div>
-                    <div className="tabular-nums text-foreground/60">{finished(p)}</div>
+                    <div className="tabular-nums text-muted-foreground">{finished(p)}</div>
                   </span>
                 </button>
               ))}
-              {lista.length === 0 && <div className="text-foreground/50">Sin pedidos</div>}
+              {lista.length === 0 && <div className="text-muted-foreground">Sin pedidos</div>}
             </div>
           </div>
         ))}
@@ -743,16 +748,16 @@ function HistoryPanel({
       <div className="mt-4">
         <div className="max-h-[40vh] overflow-y-auto">
           {order ? (
-            <div className="rounded-2xl border border-white/10 bg-surface-2 p-5">
+            <div className="rounded-2xl border border-border bg-surface p-5">
               <div className="flex items-baseline justify-between">
-                <div className="text-6xl font-black tracking-tight">{pedidoLabel(order)}</div>
+                <div className="text-6xl font-bold tracking-tight">{pedidoLabel(order)}</div>
                 <div className="text-xl">{tipoLabel(order.tipo_pedido)}</div>
               </div>
               <div className="mt-3 flex flex-col gap-4">
                 {groupLines(order.lineas_pedido ?? []).map((g, i) =>
                   g.pack ? (
-                    <div key={i} className="rounded-xl border border-brand/40 p-3">
-                      <div className="mb-2 text-lg font-bold tracking-wide text-brand uppercase">{g.pack}</div>
+                    <div key={i} className="rounded-2xl border border-brand/40 p-3">
+                      <div className="mb-2 text-lg font-semibold tracking-wide text-brand-strong uppercase">{g.pack}</div>
                       <div className="flex flex-col gap-3">
                         {g.lines.map((l) => (
                           <LineaView key={l.id} l={l} />
@@ -766,18 +771,18 @@ function HistoryPanel({
               </div>
               {confirm ? (
                 <div className="mt-4 flex items-center gap-3">
-                  <span className="text-2xl font-black text-warn">¿Seguro?</span>
+                  <span className="text-2xl font-bold text-foreground">¿Seguro?</span>
                   <button
                     disabled={busy}
                     onClick={() => reabrir(order.id)}
-                    className="flex-1 rounded-xl bg-warn py-4 text-2xl font-black text-black disabled:opacity-40"
+                    className="flex-1 rounded-2xl bg-warn py-4 text-2xl font-bold text-foreground disabled:opacity-40"
                   >
                     Sí
                   </button>
                   <button
                     disabled={busy}
                     onClick={() => setConfirm(false)}
-                    className="flex-1 rounded-xl border border-white/30 py-4 text-2xl font-bold"
+                    className="flex-1 rounded-xl border border-border py-4 text-2xl font-bold"
                   >
                     Cancelar
                   </button>
@@ -785,14 +790,14 @@ function HistoryPanel({
               ) : (
                 <button
                   onClick={() => setConfirm(true)}
-                  className="mt-4 w-full rounded-xl bg-warn py-5 text-3xl font-black text-black"
+                  className="mt-4 w-full rounded-2xl bg-warn py-5 text-3xl font-bold text-foreground"
                 >
                   REABRIR
                 </button>
               )}
             </div>
           ) : (
-            <div className="p-8 text-center text-xl text-foreground/50">Pulsa un pedido para ver el detalle</div>
+            <div className="p-8 text-center text-xl text-muted-foreground">Pulsa un pedido para ver el detalle</div>
           )}
         </div>
       </div>
