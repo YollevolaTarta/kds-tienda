@@ -35,6 +35,8 @@ export type Linea = {
   topping_1: string | null;
   topping_2: string | null;
   foto: boolean | null;
+  liquido: string | null;
+  extra_matcha: boolean | null;
   packs: { nombre: string } | null;
   recetas: { nombre: string } | null;
 };
@@ -60,7 +62,7 @@ export type Pedido = {
 export const PEDIDO_COLS =
   "id,serie,numero_pedido,estado,estacion,tipo_pedido,fecha_envio,franja_recogida,cogido_at,listo_at,en_nevera_at,created_at,ciclos";
 export const LINEA_COLS =
-  "id,pack_grupo,formato,receta,crema,topping_1,topping_2,foto,packs(nombre),recetas(nombre)";
+  "id,pack_grupo,formato,receta,crema,topping_1,topping_2,foto,liquido,extra_matcha,packs(nombre),recetas(nombre)";
 
 export function pedidoLabel(p: Pick<Pedido, "serie" | "numero_pedido">) {
   const n = String(p.numero_pedido ?? 0).padStart(2, "0");

@@ -493,11 +493,34 @@ function groupLines(lines: Linea[]) {
 function LineaView({ l }: { l: Linea }) {
   const receta = l.recetas?.nombre ?? (typeof l.receta === "string" ? l.receta : null);
   const toppings = [l.topping_1, l.topping_2].filter(Boolean).join(" + ");
+  const isShake = l.formato === "shake";
+  const liquidoLabel =
+    l.liquido === "leche"
+      ? "CON LECHE"
+      : l.liquido === "vegetal"
+        ? "CON BEBIDA VEGETAL"
+        : null;
   return (
     <div className="rounded-xl border border-white/15 bg-background/20 p-4 leading-tight text-foreground">
       <div className="text-4xl font-black">{formatoLabel(l.formato)}</div>
       <div className="mt-2 text-3xl font-semibold">{receta ?? l.crema}</div>
       {toppings && <div className="mt-2 text-2xl font-semibold">{toppings}</div>}
+      {isShake && (
+        <div className="mt-2 flex flex-wrap gap-2 text-3xl font-semibold">
+          {liquidoLabel ? (
+            <span>{liquidoLabel}</span>
+          ) : (
+            <span className="animate-pulse rounded-xl border-4 border-warn bg-warn/20 px-3 py-1 text-2xl font-black text-warn">
+              LÍQUIDO SIN INDICAR
+            </span>
+          )}
+          {l.extra_matcha && (
+            <span className="rounded-xl border-2 border-warn bg-warn/20 px-3 py-1 text-2xl font-black text-warn">
+              + MATCHA
+            </span>
+          )}
+        </div>
+      )}
       {l.foto && (
         <div className="mt-2 animate-pulse rounded-xl border-4 border-warn bg-warn/20 px-3 py-2 text-center text-2xl font-black text-warn">
           ★ DECORACIÓN SORPRESA · la eliges tú ★
