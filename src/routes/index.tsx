@@ -97,10 +97,10 @@ function LoginScreen() {
           onChange={(e) => setPassword(e.target.value)}
           className="rounded-xl border border-input bg-surface px-5 py-4 text-2xl text-foreground outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft"
         />
-        {err && <div className="rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">{err}</div>}
+        {err && <div className="rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert-strong">{err}</div>}
         <button
           disabled={busy}
-          className="rounded-xl bg-brand py-6 text-3xl font-bold text-primary-foreground active:scale-[0.99] disabled:opacity-40"
+          className="rounded-xl bg-brand py-6 text-3xl font-bold text-brand-foreground active:scale-[0.99] disabled:opacity-40"
         >
           ENTRAR
         </button>
@@ -196,7 +196,7 @@ function KdsScreen({
   const now = useNow();
   const [tab, setTab] = useState<"cocina" | "stock">("cocina");
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ text: string; tone: "error" | "info" } | null>(null);
   const { data: avisosSinConfirmar, refresh: refreshAvisos } = useRealtime<number>(
     async () => {
       const r = await supabase
@@ -272,8 +272,8 @@ function KdsScreen({
     setBusy(true);
     setMsg(null);
     const { error, data } = await fn();
-    if (error) setMsg(`Error: ${(error as { message?: string }).message ?? "desconocido"}`);
-    else if (empty && data == null) setMsg(empty);
+    if (error) setMsg({ text: `Error: ${(error as { message?: string }).message ?? "desconocido"}`, tone: "error" });
+    else if (empty && data == null) setMsg({ text: empty, tone: "info" });
     await refresh();
     setBusy(false);
   }
@@ -323,7 +323,7 @@ function KdsScreen({
 
         {cola === "online" && data.alert.length > 0 && (
           <div className="mb-4 rounded-2xl border border-alert/40 border-l-[6px] bg-alert-soft p-4 text-center">
-            <div className="flex items-center justify-center gap-3 text-3xl font-bold text-alert"><span className="size-3 shrink-0 animate-pulse rounded-full bg-alert" />¡RECOGIDA EN MENOS DE 15 MIN!</div>
+            <div className="flex items-center justify-center gap-3 text-3xl font-bold text-alert-strong"><span className="size-3 shrink-0 animate-pulse rounded-full bg-alert" />¡RECOGIDA EN MENOS DE 15 MIN!</div>
             <div className="mt-1 text-2xl font-bold tabular-nums">
               {data.alert
                 .map((p) =>
@@ -352,7 +352,7 @@ function KdsScreen({
               disabled={busy || !!data.mine}
               onClick={() => coger(cola)}
               className={`w-full rounded-2xl py-8 text-4xl font-bold tracking-wide active:scale-[0.99] disabled:opacity-40 ${
-                cola === "online" ? "bg-brand text-primary-foreground" : "bg-ok text-destructive-foreground"
+                cola === "online" ? "bg-brand text-brand-foreground" : "bg-success text-success-foreground"
               }`}
             >
               COGER SIGUIENTE
@@ -381,7 +381,7 @@ function KdsScreen({
                   <button
                     disabled={busy}
                     onClick={() => entregado(p.id)}
-                    className="rounded-xl bg-brand px-5 py-3 text-lg font-bold text-primary-foreground active:scale-[0.99] disabled:opacity-40"
+                    className="rounded-xl bg-brand px-5 py-3 text-lg font-bold text-brand-foreground active:scale-[0.99] disabled:opacity-40"
                   >
                     LISTO
                   </button>
@@ -413,7 +413,7 @@ function KdsScreen({
               >
                 {t === "cocina" ? "Cocina" : "Stock"}
                 {t === "stock" && avisosSinConfirmar > 0 && (
-                  <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-warn px-1.5 py-0.5 text-xs font-bold text-foreground tabular-nums">
+                  <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-warning px-1.5 py-0.5 text-xs font-bold text-warning-foreground tabular-nums">
                     {avisosSinConfirmar}
                   </span>
                 )}
@@ -435,7 +435,7 @@ function KdsScreen({
           <span className="text-2xl font-semibold tabular-nums">{formatClock(now)}</span>
           <button
             onClick={() => supabase.auth.signOut()}
-            className="rounded-xl border border-alert/40 px-3 py-2 text-sm font-semibold text-alert"
+            className="rounded-xl border border-alert/40 px-3 py-2 text-sm font-semibold text-alert-strong"
           >
             Cerrar turno
           </button>
@@ -445,8 +445,8 @@ function KdsScreen({
       <h1 className="sr-only">Kitchen Display System — Yo Llevo la Tarta</h1>
 
       {(msg || error) && (
-        <div className="mb-4 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">
-          {msg ?? `Sin conexión con la base: ${error}`}
+        <div className={`mb-4 rounded-xl border px-4 py-3 text-lg ${error || msg?.tone === "error" ? "border-alert/40 bg-alert-soft text-alert-strong" : "border-border bg-surface-2 text-muted-foreground"}`}>
+          {msg?.text ?? `Sin conexión con la base: ${error}`}
         </div>
       )}
 
@@ -514,8 +514,8 @@ function LineaView({ l }: { l: Linea }) {
       <div className="mt-2 text-3xl font-semibold">{receta ?? l.crema}</div>
       {toppings && <div className="mt-2 text-2xl font-medium">{toppings}</div>}
       {l.foto && (
-        <div className="mt-2 rounded-xl border border-warn bg-warn-soft px-3 py-2 text-center text-2xl font-bold text-foreground">
-          <span className="animate-pulse text-warn">★</span> DECORACIÓN SORPRESA · la eliges tú <span className="animate-pulse text-warn">★</span>
+        <div className="mt-2 rounded-xl border border-warning bg-warning-soft px-3 py-2 text-center text-2xl font-bold text-foreground">
+          <span className="animate-pulse text-warning-strong">★</span> DECORACIÓN SORPRESA · la eliges tú <span className="animate-pulse text-warning-strong">★</span>
         </div>
       )}
     </div>
@@ -545,9 +545,9 @@ function OrderCard({
     const from = order.cogido_at ? new Date(order.cogido_at).getTime() : now;
     const elapsed = Math.max(0, Math.floor((now - from) / 1000));
     const ratio = Math.min(1, (elapsed * 1000) / OPTIMAL_MS);
-    const tone = elapsed > 30 ? "alert" : elapsed >= 22 ? "warn" : "ok";
-    const toneText = tone === "alert" ? "text-alert" : tone === "warn" ? "text-warn" : "text-ok";
-    const toneBg = tone === "alert" ? "bg-alert" : tone === "warn" ? "bg-warn" : "bg-ok";
+    const tone = elapsed > 30 ? "alert" : elapsed >= 22 ? "warning" : "success";
+    const toneText = tone === "alert" ? "text-alert-strong" : tone === "warning" ? "text-warning-strong" : "text-success-strong";
+    const toneBg = tone === "alert" ? "bg-alert" : tone === "warning" ? "bg-warning" : "bg-success";
     right = (
       <div className={`text-3xl font-semibold tabular-nums ${toneText}`}>{elapsed}s / 30s</div>
     );
@@ -563,7 +563,7 @@ function OrderCard({
         <div className="text-3xl font-semibold tabular-nums text-brand-strong">
           {formatClock(order.franja_recogida)}
         </div>
-        <div className={`text-xl tabular-nums ${mins < 0 ? "text-alert" : "text-muted-foreground"}`}>
+        <div className={`text-xl tabular-nums ${mins < 0 ? "text-alert-strong" : "text-muted-foreground"}`}>
           {mins < 0 ? `hace ${Math.abs(mins)} min` : `en ${mins} min`}
         </div>
       </div>
@@ -605,7 +605,7 @@ function OrderCard({
       <button
         disabled={busy}
         onClick={onListo}
-        className="mt-4 w-full rounded-2xl bg-ok py-5 text-3xl font-bold tracking-wide text-destructive-foreground active:scale-[0.99] disabled:opacity-40"
+        className="mt-4 w-full rounded-2xl bg-success py-5 text-3xl font-bold tracking-wide text-success-foreground active:scale-[0.99] disabled:opacity-40"
       >
         {isTienda ? "LISTO" : "EN NEVERA"}
       </button>
@@ -705,7 +705,7 @@ function HistoryPanel({
         </button>
       </div>
       {(err || error) && (
-        <div className="mb-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">
+        <div className="mb-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert-strong">
           {err ?? `Error: ${error}`}
         </div>
       )}
@@ -729,7 +729,7 @@ function HistoryPanel({
                   <span className="flex items-center gap-3">
                     <span className="text-3xl font-bold tabular-nums">{pedidoLabel(p)}</span>
                     {reabierto(p.ciclos) && (
-                      <span className="rounded-md bg-warn px-2 py-0.5 text-sm font-bold text-foreground">
+                      <span className="rounded-md bg-warning px-2 py-0.5 text-sm font-bold text-warning-foreground">
                         REABIERTO
                       </span>
                     )}
@@ -775,7 +775,7 @@ function HistoryPanel({
                   <button
                     disabled={busy}
                     onClick={() => reabrir(order.id)}
-                    className="flex-1 rounded-2xl bg-warn py-4 text-2xl font-bold text-foreground disabled:opacity-40"
+                    className="flex-1 rounded-2xl bg-warning py-4 text-2xl font-bold text-warning-foreground disabled:opacity-40"
                   >
                     Sí
                   </button>
@@ -790,7 +790,7 @@ function HistoryPanel({
               ) : (
                 <button
                   onClick={() => setConfirm(true)}
-                  className="mt-4 w-full rounded-2xl bg-warn py-5 text-3xl font-bold text-foreground"
+                  className="mt-4 w-full rounded-2xl bg-warning py-5 text-3xl font-bold text-warning-foreground"
                 >
                   REABRIR
                 </button>
