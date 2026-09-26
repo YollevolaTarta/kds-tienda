@@ -47,7 +47,7 @@ function GInput({ value, onChange, label }: { value: string; onChange: (v: strin
 
 const btn = "rounded-xl px-5 py-4 text-xl font-bold disabled:opacity-40";
 const ErrBox = ({ msg }: { msg: string | null }) =>
-  msg ? <div className="mt-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">{msg}</div> : null;
+  msg ? <div className="mt-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert-strong">{msg}</div> : null;
 
 async function loadMp() {
   const r = await supabase.from("v_tienda_stock_mp").select("*").order("nombre");
@@ -99,7 +99,7 @@ function Historial({
                   <span className="text-xl font-bold">¿Seguro?</span>
                   <button
                     disabled={busy}
-                     className={`${btn} bg-alert text-destructive-foreground`}
+                     className={`${btn} bg-alert text-alert-foreground`}
                     onClick={async () => {
                       setBusy(true);
                       setErr(await anular(r.id));
@@ -184,7 +184,7 @@ export function MateriaPrima() {
          <button className={`${btn} border border-border`} onClick={() => abrir("recuento")}>
           RECUENTO
         </button>
-         <button className={`${btn} bg-brand text-primary-foreground`} onClick={() => abrir("entrada")}>
+         <button className={`${btn} bg-brand text-brand-foreground`} onClick={() => abrir("entrada")}>
           + ENTRADA
         </button>
       </div>
@@ -206,7 +206,7 @@ export function MateriaPrima() {
                 <button
                   key={v}
                   onClick={() => setOrigen(v)}
-                   className={`${btn} ${origen === v ? "bg-brand text-primary-foreground" : "border border-border bg-surface"}`}
+                   className={`${btn} ${origen === v ? "bg-brand text-brand-foreground" : "border border-border bg-surface"}`}
                 >
                   {t}
                 </button>
@@ -234,7 +234,7 @@ export function MateriaPrima() {
              <button className={`${btn} border border-border bg-surface`} onClick={() => setModo(null)}>
               Cancelar
             </button>
-             <button disabled={busy} className={`${btn} bg-ok text-destructive-foreground`} onClick={guardar}>
+             <button disabled={busy} className={`${btn} bg-success text-success-foreground`} onClick={guardar}>
               GUARDAR
             </button>
           </div>
@@ -245,7 +245,7 @@ export function MateriaPrima() {
         {data.mp.map((r) => {
           const rojo = Number(r.g_en_tienda ?? 0) <= 0;
           return (
-             <div key={r.materia_prima_id} className={`border-t border-border py-2 ${rojo ? "text-alert" : ""}`}>
+             <div key={r.materia_prima_id} className={`border-t border-border py-2 ${rojo ? "text-alert-strong" : ""}`}>
               <div className="flex items-baseline gap-4">
                 <div className="flex-1 text-3xl font-bold">
                   {r.nombre}
@@ -365,9 +365,9 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
   return (
     <section className="rounded-3xl border border-alert/40 bg-surface p-5 shadow-sm">
       <div className="flex items-center gap-3">
-         <h2 className="flex-1 text-3xl font-bold tracking-tight text-alert">MERMAS</h2>
+         <h2 className="flex-1 text-3xl font-bold tracking-tight text-alert-strong">MERMAS</h2>
         <button
-           className="rounded-xl bg-alert px-8 py-5 text-3xl font-bold text-destructive-foreground"
+           className="rounded-xl bg-alert px-8 py-5 text-3xl font-bold text-alert-foreground"
           onClick={() => {
             reset();
             setOpen(true);
@@ -382,7 +382,7 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
         <div className="fixed inset-0 z-50 overflow-y-auto bg-background/95 p-6">
            <div className="mx-auto max-w-4xl rounded-3xl border border-alert/40 bg-surface p-6 shadow-sm">
             <div className="flex items-center">
-               <h2 className="flex-1 text-4xl font-bold text-alert">TIRAR PRODUCTO</h2>
+               <h2 className="flex-1 text-4xl font-bold text-alert-strong">TIRAR PRODUCTO</h2>
                <button className={`${btn} border border-border`} onClick={() => setOpen(false)}>
                 Cerrar
               </button>
@@ -408,7 +408,7 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
                     <button
                       key={m}
                       onClick={() => setMotivo(m)}
-                       className={`${btn} ${motivo === m ? "bg-warn text-foreground" : "border border-border"}`}
+                        className={`${btn} ${motivo === m ? "bg-warning text-warning-foreground" : "border border-border"}`}
                     >
                       {m}
                     </button>
@@ -419,11 +419,11 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
                     value={otro}
                     onChange={(e) => setOtro(e.target.value)}
                     placeholder="Escribe el motivo"
-                    className="mt-3 w-full rounded-xl border border-warn/60 bg-surface-2 px-4 py-3 text-2xl text-foreground"
+                    className="mt-3 w-full rounded-xl border border-warning/60 bg-surface-2 px-4 py-3 text-2xl text-foreground"
                   />
                 )}
                 <ErrBox msg={err} />
-                 <button className={`${btn} mt-5 w-full bg-alert py-6 text-3xl text-destructive-foreground`} onClick={siguiente}>
+                  <button className={`${btn} mt-5 w-full bg-alert py-6 text-3xl text-alert-foreground`} onClick={siguiente}>
                   REVISAR Y TIRAR
                 </button>
               </>
@@ -434,7 +434,7 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
                   {resumen.map(([n, g]) => (
                      <div key={n} className="flex items-baseline border-t border-border py-2">
                       <div className="flex-1 text-3xl font-bold">{n}</div>
-                      <div className="text-4xl font-bold tabular-nums text-alert">{fmt(g)} g</div>
+                       <div className="text-4xl font-bold tabular-nums text-alert-strong">{fmt(g)} g</div>
                     </div>
                   ))}
                 </div>
@@ -448,7 +448,7 @@ export function Tirar({ stock }: { stock: ElabRow[] }) {
                   </button>
                   <button
                     disabled={busy}
-                     className={`${btn} bg-alert py-6 text-3xl text-destructive-foreground`}
+                      className={`${btn} bg-alert py-6 text-3xl text-alert-foreground`}
                     onClick={confirmar}
                   >
                     SÍ, TIRAR
