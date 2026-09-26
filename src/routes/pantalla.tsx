@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  PEDIDO_COLS,
   STORE,
   formatClock,
   pedidoLabel,
@@ -10,6 +9,9 @@ import {
   useRealtime,
   type Pedido,
 } from "@/lib/kds";
+
+const PANTALLA_COLS =
+  "id,serie,numero_pedido,estado,tipo_pedido,franja_recogida,cogido_at,listo_at";
 
 export const Route = createFileRoute("/pantalla")({
   head: () => ({
