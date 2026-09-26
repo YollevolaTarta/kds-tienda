@@ -68,7 +68,7 @@ export function StockTab({ onAvisosChanged }: { onAvisosChanged?: () => Promise<
   return (
     <div className="flex flex-col gap-6">
       {error && (
-        <div className="rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">
+        <div className="rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert-strong">
           Error al leer el stock: {error}
         </div>
       )}
@@ -92,7 +92,7 @@ export function StockTab({ onAvisosChanged }: { onAvisosChanged?: () => Promise<
           <div className="text-right text-lg text-muted-foreground">En camino</div>
           {data.stock.map((r) => {
             const agotado = Number(r.g_en_tienda ?? 0) <= 0;
-            const cls = agotado ? "text-alert" : "";
+            const cls = agotado ? "text-alert-strong" : "";
             return (
               <div key={r.elaboracion_id} className="contents">
                 <div className={`border-t border-border pt-2 text-3xl font-bold ${cls}`}>
@@ -144,9 +144,9 @@ function AvisosStock({
   }
 
   return (
-    <section className="rounded-3xl border border-warn/60 bg-warn-soft p-5">
+    <section className="rounded-3xl border border-warning/60 bg-warning-soft p-5">
       <h2 className="text-3xl font-bold tracking-tight text-foreground">STOCK BAJO MÍNIMOS</h2>
-      {err && <div className="mt-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">{err}</div>}
+      {err && <div className="mt-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert-strong">{err}</div>}
       <div className="mt-4 flex flex-col gap-3">
         {avisos.map((aviso) => (
           <div
@@ -159,12 +159,12 @@ function AvisosStock({
              <div className="text-right text-4xl font-bold tabular-nums text-foreground">
               {formatG(aviso.g_en_tienda)} g
             </div>
-            {aviso.ya_agotado && <span className="text-xl font-bold text-alert">AGOTADO</span>}
+            {aviso.ya_agotado && <span className="text-xl font-bold text-alert-strong">AGOTADO</span>}
             <button
               disabled={busyId !== null}
               onClick={() => cambiar(aviso)}
                className={`min-w-56 rounded-xl px-5 py-4 text-xl font-bold disabled:opacity-40 ${
-                 aviso.ya_agotado ? "border border-border bg-surface" : "bg-alert text-destructive-foreground"
+                  aviso.ya_agotado ? "border border-border bg-surface" : "bg-alert text-alert-foreground"
               }`}
             >
               {aviso.ya_agotado ? "Ya hay" : "MARCAR AGOTADO"}
@@ -296,11 +296,11 @@ function EnvioCard({
           value={nota}
           onChange={(e) => setNota(e.target.value)}
           placeholder="Nota obligatoria: ¿qué diferencias hay?"
-          className="mt-4 w-full rounded-xl border border-warn/60 bg-surface px-4 py-3 text-2xl text-foreground"
+          className="mt-4 w-full rounded-xl border border-warning/60 bg-surface px-4 py-3 text-2xl text-foreground"
           rows={3}
         />
       )}
-      {err && <div className="mt-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert">{err}</div>}
+      {err && <div className="mt-3 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-lg text-alert-strong">{err}</div>}
 
       <div className="mt-5 grid grid-cols-2 gap-4">
         {!diff ? (
@@ -308,14 +308,14 @@ function EnvioCard({
             <button
               disabled={busy}
               onClick={() => confirmar(false)}
-              className="rounded-xl bg-ok py-6 text-3xl font-bold text-destructive-foreground disabled:opacity-40"
+              className="rounded-xl bg-success py-6 text-3xl font-bold text-success-foreground disabled:opacity-40"
             >
               TODO CORRECTO
             </button>
             <button
               disabled={busy}
               onClick={() => setDiff(true)}
-              className="rounded-xl bg-warn py-6 text-3xl font-bold text-foreground disabled:opacity-40"
+              className="rounded-xl bg-warning py-6 text-3xl font-bold text-warning-foreground disabled:opacity-40"
             >
               HAY DIFERENCIAS
             </button>
@@ -335,7 +335,7 @@ function EnvioCard({
             <button
               disabled={busy || !nota.trim()}
               onClick={() => confirmar(true)}
-              className="rounded-xl bg-warn py-6 text-3xl font-bold text-foreground disabled:opacity-40"
+              className="rounded-xl bg-warning py-6 text-3xl font-bold text-warning-foreground disabled:opacity-40"
             >
               CONFIRMAR CON DIFERENCIAS
             </button>
