@@ -60,7 +60,9 @@ async function load() {
 }
 
 function PickupScreen() {
-  const { data } = useRealtime(load, { prep: [], listos: [] }, supabase);
+  const { data } = useRealtime(load, { prep: [], listos: [] }, supabase, [
+    "pedidos",
+  ]);
   const now = useNow();
 
   const ready = data.listos
