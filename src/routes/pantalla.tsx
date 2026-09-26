@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  PEDIDO_COLS,
   STORE,
   formatClock,
   pedidoLabel,
@@ -10,6 +9,9 @@ import {
   useRealtime,
   type Pedido,
 } from "@/lib/kds";
+
+const PANTALLA_COLS =
+  "id,serie,numero_pedido,estado,tipo_pedido,franja_recogida,cogido_at,listo_at";
 
 export const Route = createFileRoute("/pantalla")({
   head: () => ({
@@ -36,14 +38,14 @@ async function load() {
   const [prep, listos] = await Promise.all([
     supabase
       .from("pedidos")
-      .select(PEDIDO_COLS)
+      .select(PANTALLA_COLS)
       .eq("store_id", STORE)
       .eq("tipo_pedido", "en_tienda")
       .eq("estado", "preparando")
       .order("cogido_at"),
     supabase
       .from("pedidos")
-      .select(PEDIDO_COLS)
+      .select(PANTALLA_COLS)
       .eq("store_id", STORE)
       .or(
         `and(tipo_pedido.eq.en_tienda,estado.eq.listo),and(tipo_pedido.eq.recoger,estado.eq.en_nevera,franja_recogida.gte.${start},franja_recogida.lt.${end})`,
@@ -58,7 +60,9 @@ async function load() {
 }
 
 function PickupScreen() {
-  const { data } = useRealtime(load, { prep: [], listos: [] }, supabase);
+  const { data } = useRealtime(load, { prep: [], listos: [] }, supabase, [
+    "pedidos",
+  ]);
   const now = useNow();
 
   const ready = data.listos
