@@ -38,7 +38,7 @@ async function load() {
   const [prep, listos] = await Promise.all([
     supabase
       .from("pedidos")
-      .select(PEDIDO_COLS)
+      .select(PANTALLA_COLS)
       .eq("store_id", STORE)
       .eq("tipo_pedido", "en_tienda")
       .eq("estado", "preparando")
