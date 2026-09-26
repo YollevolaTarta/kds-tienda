@@ -45,7 +45,7 @@ async function load() {
       .order("cogido_at"),
     supabase
       .from("pedidos")
-      .select(PEDIDO_COLS)
+      .select(PANTALLA_COLS)
       .eq("store_id", STORE)
       .or(
         `and(tipo_pedido.eq.en_tienda,estado.eq.listo),and(tipo_pedido.eq.recoger,estado.eq.en_nevera,franja_recogida.gte.${start},franja_recogida.lt.${end})`,
