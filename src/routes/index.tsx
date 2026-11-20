@@ -242,6 +242,7 @@ function KdsScreen({
         .from("pedidos")
         .select(PEDIDO_COLS)
         .eq("store_id", store)
+        .eq("pago", "pagado")
         .eq("tipo_pedido", "recoger")
         .in("estado", ["pendiente"])
         .gte("franja_recogida", start)
